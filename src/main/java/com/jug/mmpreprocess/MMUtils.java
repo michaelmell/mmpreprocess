@@ -124,6 +124,13 @@ public class MMUtils {
 		// Delete detected points that are too high or too low
 		// (and use this sweep to compute 'maxWellCenterIdx' and
 		// 'maxWellCenters')
+		for ( int y = 0; y < frameWellCenters.size(); y++ ) {
+			if ( y < offsetTop || y >= smooth.dimension( 1 ) - offsetBottom ) {
+				frameWellCenters.get( y ).clear();
+			}
+		}
+
+		// Median stuff
 		final int[] numWellCenters = new int[ frameWellCenters.size() ];
 		final int[] sortedNumWellCenters = new int[ frameWellCenters.size() ];
 		for ( int y = 0; y < frameWellCenters.size(); y++ ) {
@@ -132,11 +139,27 @@ public class MMUtils {
 		}
 		Arrays.sort( sortedNumWellCenters );
 		final int medianWellCenters = sortedNumWellCenters[ sortedNumWellCenters.length / 2 ];
+
+		// remove rows with faulty detections (all > median#)
+		int helper_numRowsOfMedianLength = 0;
+		for ( int y = 0; y < frameWellCenters.size(); y++ ) {
+			if ( frameWellCenters.get( y ).size() == medianWellCenters ) {
+				helper_numRowsOfMedianLength++;
+			}
+			if ( frameWellCenters.get( y ).size() > medianWellCenters ) {
+				frameWellCenters.get( y ).clear();
+			}
+		}
+
 		int medianWellCentersIdx = -1;
+		helper_numRowsOfMedianLength /= 2;
 		for ( int y = 0; y < frameWellCenters.size(); y++ ) {
 			if ( numWellCenters[ y ] == medianWellCenters ) {
-				medianWellCentersIdx = y;
-				break;
+				helper_numRowsOfMedianLength--;
+				if ( helper_numRowsOfMedianLength == 0 ) {
+					medianWellCentersIdx = y;
+					break;
+				}
 			}
 		}
 		if ( medianWellCentersIdx == -1 ) { throw new RuntimeException( "ERROR\tCritical error occured while looking for GLs. Call for help!" ); }

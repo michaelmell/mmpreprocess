@@ -23,7 +23,6 @@ public class MMPreprocess {
 	public static final int EXIT_STATUS_COULDNOTLOAD_AS_FLOATTYPE = 1;
 
 	// things to come via command-line arguments
-	private static boolean HEADLESS = false;
 	private static String OUTPUT_PATH = "";
 	private static int MIN_CHANNEL_IDX = 1;
 	private static int NUM_CHANNELS = 2;
@@ -39,7 +38,7 @@ public class MMPreprocess {
 	private static final int TOP_PADDING = 25;
 	private static final int GL_MIN_LENGTH = 250;
 	private static final double VARIANCE_THRESHOLD = 0.001;
-	private static final int LATERAL_OFFSET = 50;
+	private static final int LATERAL_OFFSET = 40;
 	private static final int GL_CROP_WIDTH = 100;
 
 	/**
@@ -50,7 +49,7 @@ public class MMPreprocess {
 
 		// assemble file-list to process
 		final MMDataSource dataSource =
-				new MMDataSource( inputFolder, NUM_CHANNELS, MIN_CHANNEL_IDX );
+				new MMDataSource( inputFolder, NUM_CHANNELS, MIN_CHANNEL_IDX, MIN_TIME, MAX_TIME );
 
 		// compute tilt angle
 		final MMDataFrame firstFrame = dataSource.getFrame( 0 );
@@ -86,7 +85,8 @@ public class MMPreprocess {
 		// crop GLs out of frames
 		for ( int f = 0; f < dataSource.size(); f++ ) {
 			final MMDataFrame frame = dataSource.getFrame( f );
-			if ( frame.readImageDataIfNeeded() ) {
+			frame.readImageDataIfNeeded();
+			if ( f > 0 ) { // first one is already modified at this point (see above)
 				frame.rotate( angle, BOTTOM_PADDING );
 				frame.crop( tightCropArea );
 			}
@@ -113,10 +113,6 @@ public class MMPreprocess {
 		// defining command line options
 		final Option help = new Option( "help", "print this message" );
 
-		final Option headless =
-				new Option( "h", "headless", false, "start without user interface (note: input-folder must be given!)" );
-		headless.setRequired( false );
-
 		final Option timeFirst =
 				new Option( "tmin", "min_time", true, "first time-point to be processed" );
 		timeFirst.setRequired( false );
@@ -141,7 +137,6 @@ public class MMPreprocess {
 		outfolder.setRequired( false );
 
 		options.addOption( help );
-		options.addOption( headless );
 		options.addOption( numChannelsOption );
 		options.addOption( minChannelIdxOption );
 		options.addOption( timeFirst );
@@ -155,7 +150,7 @@ public class MMPreprocess {
 		} catch ( final ParseException e1 ) {
 			final HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp(
-					"... -p [props-file] -i [in-folder] -o [out-folder] -c <num-channels> -cmin [start-channel-ids] -tmin [idx] -tmax [idx] [-headless]",
+					"... -p [props-file] -i [in-folder] -o [out-folder] -c <num-channels> -cmin [start-channel-ids] -tmin [idx] -tmax [idx]",
 					"",
 					options,
 					"Error: " + e1.getMessage() );
@@ -166,16 +161,6 @@ public class MMPreprocess {
 			final HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp( "... -i <in-folder> -o [out-folder] [-headless]", options );
 			System.exit( 0 );
-		}
-
-		if ( cmd.hasOption( "h" ) ) {
-			System.out.println( ">>> Starting MM in headless mode." );
-			HEADLESS = true;
-			if ( !cmd.hasOption( "i" ) ) {
-				final HelpFormatter formatter = new HelpFormatter();
-				formatter.printHelp( "Headless-mode requires option '-i <in-folder>'...", options );
-				System.exit( 0 );
-			}
 		}
 
 		inputFolder = null;

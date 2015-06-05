@@ -375,15 +375,9 @@ public class MMDataFrame {
 				new File( path ).mkdirs();
 
 				String complete_fn;
-				if ( !isTestSet ) {
-					complete_fn =
-							String.format( "%s/%s_GL%02d_t%04d_c%04d.tif",
-									path, basisName, gl + 1, t, c + minChannelIdx );
-				} else {
-					complete_fn =
-							String.format( "%s/GL%02d_test_c%04d.tif",
-									path, gl + 1, c + minChannelIdx );
-				}
+				complete_fn =
+						String.format( "%s/%s_GL%02d_t%04d_c%04d.tif",
+								path, basisName, gl + 1, t, c + minChannelIdx );
 				IJ.saveAsTiff(
 						ImageJFunctions.wrap( toSave, "tmp" ), complete_fn );
 

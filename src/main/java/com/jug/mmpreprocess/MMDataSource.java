@@ -25,17 +25,28 @@ public class MMDataSource {
 	/**
 	 * @param inputFolder
 	 */
-	public MMDataSource( final File inputFolder, final int numChannels, final int minChannelIdx ) {
+	public MMDataSource(
+			final File inputFolder,
+			final int numChannels,
+			final int minChannelIdx,
+			final int minTime,
+			int maxTime ) {
 		sanityChecks( inputFolder );
 
 		this.numChannels = numChannels;
+
+		if ( maxTime < 0 ) {
+			maxTime = Integer.MAX_VALUE;
+		}
 
 		final File[] fileArray =
 				inputFolder.listFiles( new ExtensionFileFilter( extensions, ".tif and .tiff" ) );
 		final List< String > listOfImageFilesnames = new ArrayList< String >( fileArray.length );
 		for ( final File file : fileArray ) {
 			if ( !file.isDirectory() ) {
-				listOfImageFilesnames.add( file.getAbsolutePath() );
+				if ( isInDataRange( file.getAbsolutePath(), minTime, maxTime ) ) {
+					listOfImageFilesnames.add( file.getAbsolutePath() );
+				}
 			}
 		}
 
@@ -48,15 +59,30 @@ public class MMDataSource {
 //			System.out.println( filename );
 
 			if ( i % numChannels == 0 ) {
-				if ( i > 0 )
-					dataFrames.add( new MMDataFrame( srcFilenames, numChannels, minChannelIdx, inputFolder.getName() ) );
 				srcFilenames = new ArrayList< String >( numChannels );
 				srcFilenames.add( filename );
 			} else {
 				srcFilenames.add( filename );
+				dataFrames.add( new MMDataFrame( srcFilenames, numChannels, minChannelIdx, inputFolder.getName() ) );
 			}
 			i++;
 		}
+	}
+
+	/**
+	 * @return
+	 */
+	private boolean isInDataRange( final String fn, final int minT, final int maxT ) {
+		final int start = fn.indexOf( "_t" ) + 2;
+		final String strT = fn.substring( start, start + 4 );
+		try {
+			final int t = Integer.parseInt( strT );
+			if ( t >= minT && t <= maxT ) { return true; }
+		} catch ( final NumberFormatException e ) {
+			throw new IllegalArgumentException( String.format(
+					"ERROR\tFile list corrupt. Time could not be extracted for file %s.", fn ) );
+		}
+		return false;
 	}
 
 	/**
