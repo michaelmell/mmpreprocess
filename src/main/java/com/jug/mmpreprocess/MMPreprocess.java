@@ -60,7 +60,18 @@ public class MMPreprocess {
 		System.out.println( "Angle for 1st frame: " + angle1 );
 		System.out.println( "Angle for 2nd frame: " + angle2 );
 		System.out.println( "" );
-		final double angle = ( angle1 + angle2 ) / 2;
+
+		// safety net
+		double angle = ( angle1 + angle2 ) / 2;
+		if ( Math.abs( angle1 - angle2 ) > 0.5 ) {
+//			if ( angle1 != 0 ) {
+				System.out.println( "Angles are very different -- use only angle of 1st frame!" );
+				angle = angle1;
+//			} else {
+//				System.out.println( "Angles are very different -- use only angle of lat frame (because he one of the first frame is '0.0'!" );
+//				angle = angle2;
+//			}
+		}
 
 		// rotate and compute crop ROI
 		firstFrame.rotate( angle, BOTTOM_PADDING );
