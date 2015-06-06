@@ -45,6 +45,11 @@ public class MMUtils {
 
 		final SimpleRegression regression = new SimpleRegression();
 
+//		final int[] values = new int[ ( int ) ( img2d.max( 0 ) - img2d.min( 0 ) ) ];
+//		for ( int i = 0; i < values.length; i++ ) {
+//			values[ i ] = -1;
+//		}
+//		int i = 0;
 		for ( long x = img2d.min( 0 ); x < img2d.max( 0 ); x++ ) {
 			final IntervalView< FloatType > column = Views.hyperSlice( img2d, 0, x );
 
@@ -53,6 +58,7 @@ public class MMUtils {
 				colCursor.fwd();
 				try {
 					if ( colCursor.get().get() > intensityThreshold ) {
+//						values[ i ] = -colCursor.getIntPosition( 0 );
 						regression.addData( x, -colCursor.getIntPosition( 0 ) );
 						break;
 					}
@@ -62,7 +68,29 @@ public class MMUtils {
 					System.exit( MMPreprocess.EXIT_STATUS_COULDNOTLOAD_AS_FLOATTYPE );
 				}
 			}
+//			i++;
 		}
+
+		// get rid of outliers
+//		System.out.println( "" );
+//		for ( int v = 0; v < values.length; v++ ) {
+//			if ( values[ v ] != -1 )
+//				System.out.print( "" + values[ v ] + "," );
+//		}
+//		System.out.println( "" );
+//		for ( int v = 0; v < values.length - 1; v++ ) {
+//			if ( values[ v ] != -1 )
+//				System.out.print( "" + ( values[ v ] - values[ v + 1 ] ) + "," );
+//		}
+//		System.out.println( "" );
+//		for ( int s = 0; s < values.length / 10; s += 10 ) {
+//			final int[] bucket = new int[ 10 ];
+//			for ( int j = 0; j < 10; j++ ) {
+//				bucket[ j ] = values[ s * 10 + j ];
+//				Arrays.sort( bucket );
+//				regression.addData( s * 10 + j, bucket[ 5 ] );
+//			}
+//		}
 
 		final double dCorrectedSlope = regression.getSlope();
 		final double radSlant = Math.atan( dCorrectedSlope );

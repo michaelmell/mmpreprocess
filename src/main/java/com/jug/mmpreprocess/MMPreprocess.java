@@ -33,7 +33,7 @@ public class MMPreprocess {
 	private static File outputFolder;
 
 	// global parameters
-	private static final double INTENSITY_THRESHOLD = 0.25;
+	private static double INTENSITY_THRESHOLD;   // set in parseCommandLineArgs()
 	private static final int BOTTOM_PADDING = 25;
 	private static final int TOP_PADDING = 25;
 	private static final int GL_MIN_LENGTH = 250;
@@ -45,7 +45,7 @@ public class MMPreprocess {
 	 * @param args
 	 */
 	public static void main( final String[] args ) {
-		parseCommandLine( args );
+		parseCommandLineArgs( args );
 
 		// assemble file-list to process
 		final MMDataSource dataSource =
@@ -57,16 +57,16 @@ public class MMPreprocess {
 		final double angle1 = MMUtils.computeTiltAngle( firstFrame, INTENSITY_THRESHOLD );
 		final double angle2 = MMUtils.computeTiltAngle( lastFrame, INTENSITY_THRESHOLD );
 		System.out.println( "\n" );
-		System.out.println( "Angle for 1st frame: " + angle1 );
-		System.out.println( "Angle for 2nd frame: " + angle2 );
+		System.out.println( "Angle for  1st frame: " + angle1 );
+		System.out.println( "Angle for last frame: " + angle2 );
 		System.out.println( "" );
 
 		// safety net
 		double angle = ( angle1 + angle2 ) / 2;
 		if ( Math.abs( angle1 - angle2 ) > 0.5 ) {
 //			if ( angle1 != 0 ) {
-				System.out.println( "Angles are very different -- use only angle of 1st frame!" );
-				angle = angle1;
+			System.out.println( "Angles are very different -- use only angle of 1st frame!" );
+			angle = angle1;
 //			} else {
 //				System.out.println( "Angles are very different -- use only angle of lat frame (because he one of the first frame is '0.0'!" );
 //				angle = angle2;
@@ -116,7 +116,7 @@ public class MMPreprocess {
 	/**
 	 * @param args
 	 */
-	private static void parseCommandLine( final String[] args ) {
+	private static void parseCommandLineArgs( final String[] args ) {
 
 		// create Options object & the parser
 		final Options options = new Options();
@@ -147,6 +147,10 @@ public class MMPreprocess {
 				new Option( "o", "outfolder", true, "folder to write preprocessed data to (equals infolder if not given)" );
 		outfolder.setRequired( false );
 
+		final Option hasBrightNumbers =
+				new Option( "bn", "bright_numbers", false, "use this option if the numbers below the GLs happen to be by far the brightest objects." );
+		hasBrightNumbers.setRequired( false );
+
 		options.addOption( help );
 		options.addOption( numChannelsOption );
 		options.addOption( minChannelIdxOption );
@@ -154,6 +158,8 @@ public class MMPreprocess {
 		options.addOption( timeLast );
 		options.addOption( infolder );
 		options.addOption( outfolder );
+		options.addOption( hasBrightNumbers );
+
 		// get the commands parsed
 		CommandLine cmd = null;
 		try {
@@ -161,7 +167,7 @@ public class MMPreprocess {
 		} catch ( final ParseException e1 ) {
 			final HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp(
-					"... -p [props-file] -i [in-folder] -o [out-folder] -c <num-channels> -cmin [start-channel-ids] -tmin [idx] -tmax [idx]",
+					"... -i [in-folder] -o [out-folder] -c <num-channels> -cmin [start-channel-ids] -tmin [idx] -tmax [idx]",
 					"",
 					options,
 					"Error: " + e1.getMessage() );
@@ -219,6 +225,12 @@ public class MMPreprocess {
 		}
 		if ( cmd.hasOption( "tmax" ) ) {
 			MAX_TIME = Integer.parseInt( cmd.getOptionValue( "tmax" ) );
+		}
+
+		if ( cmd.hasOption( "bn" ) ) {
+			INTENSITY_THRESHOLD = 0.15;
+		} else {
+			INTENSITY_THRESHOLD = 0.25;
 		}
 	}
 
