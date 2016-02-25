@@ -37,9 +37,9 @@ public class MMPreprocess {
 	private static final int BOTTOM_PADDING = 25;
 	private static final int TOP_PADDING = 25;
 	private static final int GL_MIN_LENGTH = 250;
-	private static final double VARIANCE_THRESHOLD = 0.001;
-	private static final int LATERAL_OFFSET = 40;
-	private static final int GL_CROP_WIDTH = 100;
+	private static final double VARIANCE_THRESHOLD = 0.00001;// 0.001
+	private static final int LATERAL_OFFSET = 10;// 20 ??
+	private static final int GL_CROP_WIDTH = 40;// 100
 
 	/**
 	 * @param args

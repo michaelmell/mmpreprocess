@@ -58,13 +58,18 @@ public class MMDataSource {
 		for ( final String filename : listOfImageFilesnames ) {
 //			System.out.println( filename );
 
+			// collect
 			if ( i % numChannels == 0 ) {
-				srcFilenames = new ArrayList< String >( numChannels );
 				srcFilenames.add( filename );
 			} else {
 				srcFilenames.add( filename );
-				dataFrames.add( new MMDataFrame( srcFilenames, numChannels, minChannelIdx, inputFolder.getName() ) );
 			}
+			// add + restart collecting
+			if ( ( i + 1 ) % numChannels == 0 ) {
+				dataFrames.add( new MMDataFrame( srcFilenames, numChannels, minChannelIdx, inputFolder.getName() ) );
+				srcFilenames = new ArrayList< String >( numChannels );
+			}
+
 			i++;
 		}
 	}
