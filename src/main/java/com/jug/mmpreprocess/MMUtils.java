@@ -7,6 +7,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.math3.stat.regression.SimpleRegression;
+
+import com.jug.mmpreprocess.oldshit.FindLocalMaxima;
+import com.jug.mmpreprocess.oldshit.GrowthLineFrame;
+import com.jug.mmpreprocess.oldshit.Loops;
+
 import net.imglib2.Cursor;
 import net.imglib2.Point;
 import net.imglib2.RandomAccessibleInterval;
@@ -16,12 +22,6 @@ import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
-
-import org.apache.commons.math3.stat.regression.SimpleRegression;
-
-import com.jug.mmpreprocess.oldshit.FindLocalMaxima;
-import com.jug.mmpreprocess.oldshit.GrowthLineFrame;
-import com.jug.mmpreprocess.oldshit.Loops;
 
 
 /**
@@ -107,13 +107,15 @@ public class MMUtils {
 			final RandomAccessibleInterval< FloatType > img,
 			final int offsetLateral,
 			final int offsetTop,
-			final int offsetBottom ) {
+			final int offsetBottom,
+			final double sigmaX,
+			final double sigmaY ) {
 
 		// ------ GAUSS -----------------------------
 
 		final double[] sigmas = new double[ 2 ];
-		sigmas[ 0 ] = 20;
-		sigmas[ 1 ] = 0;
+		sigmas[ 0 ] = sigmaX;
+		sigmas[ 1 ] = sigmaY;
 
 		final long dims[] = new long[ img.numDimensions() ];
 		img.dimensions( dims );

@@ -3,15 +3,19 @@
  */
 package com.jug.mmpreprocess;
 
-import ij.IJ;
-import io.scif.img.ImgIOException;
-
 import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.jug.mmpreprocess.oldshit.GrowthLineFrame;
+import com.jug.mmpreprocess.oldshit.Loops;
+import com.jug.mmpreprocess.oldshit.VarOfRai;
+import com.jug.util.FloatTypeImgLoader;
+
+import ij.IJ;
+import io.scif.img.ImgIOException;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
@@ -25,11 +29,6 @@ import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
-
-import com.jug.mmpreprocess.oldshit.GrowthLineFrame;
-import com.jug.mmpreprocess.oldshit.Loops;
-import com.jug.mmpreprocess.oldshit.VarOfRai;
-import com.jug.util.FloatTypeImgLoader;
 
 
 /**
@@ -286,12 +285,14 @@ public class MMDataFrame {
 	 * @param lateralOffset
 	 * @return
 	 */
-	public List< CropArea > computeGrowthLaneCropAreas( final int lateralOffset, final int cropWidth ) {
+	public List< CropArea > computeGrowthLaneCropAreas( final int lateralOffset, final int cropWidth, final double sigmaX, final double sigmaY ) {
 
 		final List< CropArea > ret = new ArrayList< CropArea >();
 
 		final List< GrowthLineFrame > growthLines =
-				MMUtils.getGrowthLineFrames( channelImages.get( 0 ), lateralOffset, 30, 30 );
+				MMUtils.getGrowthLineFrames( channelImages.get( 0 ), lateralOffset, 30, 30, sigmaX, sigmaY );
+
+		System.out.println( "Number of GLs found: " + growthLines.size() + "\n" );
 
 		int i = 0;
 		for ( final GrowthLineFrame gl : growthLines ) {

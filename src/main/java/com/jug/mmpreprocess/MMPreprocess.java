@@ -28,18 +28,20 @@ public class MMPreprocess {
 	private static int NUM_CHANNELS = 2;
 	private static int MIN_TIME = -1;
 	private static int MAX_TIME = -1;
+	private static double SIGMA_X = 20.0;
+	private static double SIGMA_Y = 0.0;
 
 	private static File inputFolder;
 	private static File outputFolder;
 
 	// global parameters
 	private static double INTENSITY_THRESHOLD;   // set in parseCommandLineArgs()
-	private static final int BOTTOM_PADDING = 25;
+	private static final int BOTTOM_PADDING = 0;
 	private static final int TOP_PADDING = 25;
-	private static final int GL_MIN_LENGTH = 250;
+	private static final int GL_MIN_LENGTH = 100;
 	private static final double VARIANCE_THRESHOLD = 0.00001;// 0.001
-	private static final int LATERAL_OFFSET = 10;// 20 ??
-	private static final int GL_CROP_WIDTH = 40;// 100
+	private static final int LATERAL_OFFSET = 7;// 20 ??
+	private static final int GL_CROP_WIDTH = 45;// 100
 
 	/**
 	 * @param args
@@ -87,7 +89,7 @@ public class MMPreprocess {
 
 		// compute GL crop areas
 		final List< CropArea > glCropAreas =
-				firstFrame.computeGrowthLaneCropAreas( LATERAL_OFFSET, GL_CROP_WIDTH );
+				firstFrame.computeGrowthLaneCropAreas( LATERAL_OFFSET, GL_CROP_WIDTH, SIGMA_X, SIGMA_Y );
 
 		// debug
 		firstFrame.setGLCropAreas( glCropAreas );
@@ -147,6 +149,10 @@ public class MMPreprocess {
 				new Option( "o", "outfolder", true, "folder to write preprocessed data to (equals infolder if not given)" );
 		outfolder.setRequired( false );
 
+		final Option sigma =
+				new Option( "s", "sigma", true, "sigma for smoothing prior to finding GLs (default value: 20.0)" );
+		sigma.setRequired( false );
+
 		final Option hasBrightNumbers =
 				new Option( "bn", "bright_numbers", false, "use this option if the numbers below the GLs happen to be by far the brightest objects." );
 		hasBrightNumbers.setRequired( false );
@@ -158,6 +164,7 @@ public class MMPreprocess {
 		options.addOption( timeLast );
 		options.addOption( infolder );
 		options.addOption( outfolder );
+		options.addOption( sigma );
 		options.addOption( hasBrightNumbers );
 
 		// get the commands parsed
@@ -167,7 +174,7 @@ public class MMPreprocess {
 		} catch ( final ParseException e1 ) {
 			final HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp(
-					"... -i [in-folder] -o [out-folder] -c <num-channels> -cmin [start-channel-ids] -tmin [idx] -tmax [idx]",
+					"... -i [in-folder] -o [out-folder] -c <num-channels> -cmin [start-channel-ids] -tmin [idx] -tmax [idx] -s [sigma] [-bn]",
 					"",
 					options,
 					"Error: " + e1.getMessage() );
@@ -176,7 +183,9 @@ public class MMPreprocess {
 
 		if ( cmd.hasOption( "help" ) ) {
 			final HelpFormatter formatter = new HelpFormatter();
-			formatter.printHelp( "... -i <in-folder> -o [out-folder] [-headless]", options );
+			formatter.printHelp(
+					"... -i [in-folder] -o [out-folder] -c <num-channels> -cmin [start-channel-ids] -tmin [idx] -tmax [idx] -s [sigma] [-bn]",
+					options );
 			System.exit( 0 );
 		}
 
@@ -225,6 +234,11 @@ public class MMPreprocess {
 		}
 		if ( cmd.hasOption( "tmax" ) ) {
 			MAX_TIME = Integer.parseInt( cmd.getOptionValue( "tmax" ) );
+		}
+
+		if ( cmd.hasOption( "s" ) ) {
+			SIGMA_X = Double.parseDouble( cmd.getOptionValue( "s" ) );
+			SIGMA_Y = 0.0;
 		}
 
 		if ( cmd.hasOption( "bn" ) ) {
