@@ -195,7 +195,7 @@ public class DataMover {
 			} else {
 				throwException = true;
 			}
-		} else if ( sourceType instanceof ARGBType ) {
+		} /*else if ( sourceType instanceof ARGBType ) {
 
 			// ARGBType --> FloatType
 			if ( targetType instanceof ARGBType ) {
@@ -215,7 +215,7 @@ public class DataMover {
 			} else {
 				throwException = true;
 			}
-		} else {
+		}*/ else {
 			throwException = true;
 		}
 
