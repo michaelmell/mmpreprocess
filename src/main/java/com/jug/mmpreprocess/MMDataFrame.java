@@ -44,7 +44,7 @@ public class MMDataFrame {
 	private final String basisName;
 
 	private List< String > channelSourceFilenames = new ArrayList< String >();
-	private List< RandomAccessibleInterval< FloatType > > channelImages = new ArrayList<>();
+	private List< RandomAccessibleInterval< FloatType > > channelImages = new ArrayList<RandomAccessibleInterval< FloatType > >();
 	private List< CropArea > glCropAreas = null;
 
 	public MMDataFrame(
@@ -109,14 +109,14 @@ public class MMDataFrame {
 	}
 
 	public void dropImageData() {
-		channelImages = new ArrayList<>();
+		channelImages = new ArrayList<RandomAccessibleInterval< FloatType > >();
 	}
 
 	/**
 	 *
 	 */
 	public void loadChannelImages() {
-		channelImages = new ArrayList<>();
+		channelImages = new ArrayList<RandomAccessibleInterval< FloatType > >();
 
 		// normalize first channel
 		boolean normalize = true;
