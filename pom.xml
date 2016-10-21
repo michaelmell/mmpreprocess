@@ -12,7 +12,7 @@
 	</parent>
  
 	<groupId>com.jug</groupId>
-	<artifactId>MMPreprocess</artifactId>
+	<artifactId>MMPreprocess_</artifactId>
 	<version>0.9</version>
 
 	<name>MotherMachine Preprocessing</name>
@@ -64,7 +64,7 @@
 				<directory>${project.build.testSourceDirectory}</directory>
 			</testResource>
 		</testResources>
-		<plugins>
+		<!--<plugins>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
@@ -79,7 +79,31 @@
 					<mainClass>MMPreproces</mainClass>
 				</configuration>
 			</plugin>
-		</plugins>
+		</plugins>-->
+
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-shade-plugin</artifactId>
+					<version>2.4.3</version>
+					<executions>
+						<execution>
+							<phase>package</phase>
+							<goals>
+								<goal>shade</goal>
+							</goals>
+							<configuration>
+								<transformers>
+									<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+										<mainClass>com.jug.mmpreprocess.MMPreprocess</mainClass>
+									</transformer>
+								</transformers>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+
 	</build>
 
 	<developers>
