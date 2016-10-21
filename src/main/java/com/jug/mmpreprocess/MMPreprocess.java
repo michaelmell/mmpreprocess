@@ -112,7 +112,11 @@ public class MMPreprocess {
 
 //		new ImageJ();
 //		ImageJFunctions.show( firstFrame.getChannel( 0 ), "DEBUG" );
-		System.exit( 0 );
+		if (!running_as_Fiji_plugin) {
+			System.exit(0);
+		} else {
+			return;
+		}
 	}
 
 	/**
@@ -173,13 +177,21 @@ public class MMPreprocess {
 					"",
 					options,
 					"Error: " + e1.getMessage() );
-			System.exit( 0 );
+			if (!running_as_Fiji_plugin) {
+				System.exit(0);
+			} else {
+				return;
+			}
 		}
 
 		if ( cmd.hasOption( "help" ) ) {
 			final HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp( "... -i <in-folder> -o [out-folder] [-headless]", options );
-			System.exit( 0 );
+			if (!running_as_Fiji_plugin) {
+				System.exit(0);
+			} else {
+				return;
+			}
 		}
 
 		inputFolder = null;
@@ -188,11 +200,19 @@ public class MMPreprocess {
 
 			if ( !inputFolder.isDirectory() ) {
 				System.out.println( "Error: Input folder is not a directory!" );
-				System.exit( 2 );
+				if (!running_as_Fiji_plugin) {
+					System.exit(2);
+				} else {
+					return;
+				}
 			}
 			if ( !inputFolder.canRead() ) {
 				System.out.println( "Error: Input folder cannot be read!" );
-				System.exit( 2 );
+				if (!running_as_Fiji_plugin) {
+					System.exit(2);
+				} else {
+					return;
+				}
 			}
 		}
 
@@ -205,11 +225,19 @@ public class MMPreprocess {
 
 			if ( !outputFolder.isDirectory() ) {
 				System.out.println( "Error: Output folder is not a directory!" );
-				System.exit( 3 );
+				if (!running_as_Fiji_plugin) {
+					System.exit(3);
+				} else {
+					return;
+				}
 			}
 			if ( !outputFolder.canWrite() ) {
 				System.out.println( "Error: Output folder cannot be written to!" );
-				System.exit( 3 );
+				if (!running_as_Fiji_plugin) {
+					System.exit(3);
+				} else {
+					return;
+				}
 			}
 
 			OUTPUT_PATH = outputFolder.getAbsolutePath();
