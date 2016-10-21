@@ -22,6 +22,8 @@ public class MMPreprocess {
 	public static final int EXIT_STATUS_COULDNOTLOAD = 1;
 	public static final int EXIT_STATUS_COULDNOTLOAD_AS_FLOATTYPE = 1;
 
+	public static boolean running_as_Fiji_plugin = false;
+
 	// things to come via command-line arguments
 	private static String OUTPUT_PATH = "";
 	private static int MIN_CHANNEL_IDX = 1;
