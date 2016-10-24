@@ -39,9 +39,9 @@ public class MMPreprocess {
 	private static final int BOTTOM_PADDING = 25;
 	private static final int TOP_PADDING = 25;
 	private static final int GL_MIN_LENGTH = 250;
-	private static final double VARIANCE_THRESHOLD = 0.00001;// 0.001
-	private static final int LATERAL_OFFSET = 10;// 20 ??
-	private static final int GL_CROP_WIDTH = 40;// 100
+	private static double VARIANCE_THRESHOLD = 0.001;// 0.00001; // may be modified in parseCommandLineArgs()
+	private static int LATERAL_OFFSET = 40; //10; // may be modified in parseCommandLineArgs()
+	private static int GL_CROP_WIDTH = 100; //40; // may be modified in parseCommandLineArgs()
 
 	/**
 	 * @param args
@@ -157,6 +157,19 @@ public class MMPreprocess {
 				new Option( "bn", "bright_numbers", false, "use this option if the numbers below the GLs happen to be by far the brightest objects." );
 		hasBrightNumbers.setRequired( false );
 
+		final Option varianceThreshold =
+				new Option("vt", "variance_threshold", true, "variance threshold help text missing!");
+		varianceThreshold.setRequired(false);
+
+		final Option lateralOffset =
+				new Option("lo", "lateral_offset", true, "lateral offset help text missing!");
+		lateralOffset.setRequired(false);
+
+		final Option cropWidth =
+				new Option("cw", "crop_width", true, "crop width help text missing!");
+		cropWidth.setRequired(false);
+
+
 		options.addOption( help );
 		options.addOption( numChannelsOption );
 		options.addOption( minChannelIdxOption );
@@ -165,6 +178,10 @@ public class MMPreprocess {
 		options.addOption( infolder );
 		options.addOption( outfolder );
 		options.addOption( hasBrightNumbers );
+		options.addOption( varianceThreshold );
+		options.addOption( lateralOffset );
+		options.addOption( cropWidth );
+
 
 		// get the commands parsed
 		CommandLine cmd = null;
@@ -262,6 +279,15 @@ public class MMPreprocess {
 		} else {
 			INTENSITY_THRESHOLD = 0.25;
 		}
-	}
 
+		if (cmd.hasOption("vt")) {
+			VARIANCE_THRESHOLD = Double.parseDouble(cmd.getOptionValue("vt"));
+		}
+		if (cmd.hasOption("lo")) {
+			LATERAL_OFFSET = Integer.parseInt(cmd.getOptionValue("lo"));
+		}
+		if (cmd.hasOption("cw")) {
+			GL_CROP_WIDTH = Integer.parseInt(cmd.getOptionValue("cw"));
+		}
+	}
 }
