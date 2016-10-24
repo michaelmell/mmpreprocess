@@ -27,6 +27,10 @@ public class MMPreprocessingPlugin implements PlugIn {
         gd.addNumericField("Channels_start_with (usually 0 or 1)", 1, 0);
         gd.addNumericField("Number_of_Time_points", 40, 0);
         gd.addNumericField("Time_points_start_with (usually 0 or 1)", 1, 0);
+        gd.addMessage("Advanced parameters");
+        gd.addNumericField("Variance_threshold", 0.001, 8);
+        gd.addNumericField("Lateral_offset", 40, 0);
+        gd.addNumericField("Crop_width", 100, 0);
         gd.showDialog();
         if (gd.wasCanceled()) {
             return;
@@ -37,7 +41,9 @@ public class MMPreprocessingPlugin implements PlugIn {
         int channelStartIndex = (int)gd.getNextNumber();
         int numberOfTimePoints = (int)gd.getNextNumber();
         int timePointStartIndex = (int)gd.getNextNumber();
-
+        double varianceThreshold = gd.getNextNumber();
+        int lateralOffset = (int)gd.getNextNumber();
+        int cropWidth = (int)gd.getNextNumber();
 
 
 
@@ -57,7 +63,13 @@ public class MMPreprocessingPlugin implements PlugIn {
                 "-tmin",
                 "" + timePointStartIndex,
                 "-tmax",
-                "" + (timePointStartIndex + numberOfTimePoints - 1)
+                "" + (timePointStartIndex + numberOfTimePoints - 1),
+                "-vt",
+                "" + varianceThreshold,
+                "-lo",
+                "" + lateralOffset,
+                "-cw",
+                "" + cropWidth,
         };
 
         // -----------------------------------------
