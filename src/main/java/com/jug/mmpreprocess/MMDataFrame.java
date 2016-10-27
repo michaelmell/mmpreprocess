@@ -29,7 +29,7 @@ import net.imglib2.view.Views;
 import com.jug.mmpreprocess.oldshit.GrowthLineFrame;
 import com.jug.mmpreprocess.oldshit.Loops;
 import com.jug.mmpreprocess.oldshit.VarOfRai;
-import com.jug.util.FloatTypeImgLoader;
+import com.jug.mmpreprocess.util.FloatTypeImgLoader;
 
 
 /**

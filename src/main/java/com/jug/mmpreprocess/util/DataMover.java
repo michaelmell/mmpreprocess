@@ -1,7 +1,7 @@
 /**
  *
  */
-package com.jug.util;
+package com.jug.mmpreprocess.util;
 
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;

@@ -1,7 +1,7 @@
 /**
  *
  */
-package com.jug.util;
+package com.jug.mmpreprocess.util;
 
 import ij.IJ;
 import ij.Prefs;
