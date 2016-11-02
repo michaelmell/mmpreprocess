@@ -46,10 +46,6 @@ public class MMPreprocessingPlugin implements PlugIn {
         int cropWidth = (int)gd.getNextNumber();
 
 
-
-
-        IJ.log("Hello preprocessing");
-
         String[] args = {
                 "mmpreprocess",
                 "-i",
