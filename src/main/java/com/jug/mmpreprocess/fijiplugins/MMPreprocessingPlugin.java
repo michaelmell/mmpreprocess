@@ -59,7 +59,7 @@ public class MMPreprocessingPlugin implements PlugIn {
                 "-tmin",
                 "" + timePointStartIndex,
                 "-tmax",
-                "" + (timePointStartIndex + numberOfTimePoints - 1),
+                "" + (timePointStartIndex + numberOfTimePoints),
                 "-vt",
                 "" + varianceThreshold,
                 "-lo",
