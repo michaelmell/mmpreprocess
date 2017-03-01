@@ -13,31 +13,7 @@ import static org.junit.Assert.*;
  */
 public class MMPreprocessTest {
 
-    private FileFilter tifFilter = new FileFilter() {
-        @Override
-        public boolean accept(File pathname) {
-            return pathname.getName().contains(".tif");
-        }
-    };
 
-    private FileFilter folderFilter = new FileFilter() {
-        @Override
-        public boolean accept(File pathname) {
-            return pathname.isDirectory();
-        }
-    };
-
-
-    // delete files / folders recursively
-    private boolean cleanUp(File file) {
-        boolean result = true;
-        if (file.isDirectory()) {
-            for (File sub : file.listFiles()) {
-                result = result & cleanUp(sub);
-            }
-        }
-        return result & file.delete();
-    }
 
     @Test
     public void testWorkingWithADirectory() {
@@ -72,14 +48,85 @@ public class MMPreprocessTest {
 
         File outputfolder = new File(outputDir);
         assertTrue("Output folder was created ", outputfolder.exists() && outputfolder.isDirectory());
-        assertTrue("Output folder contains right number of files and folders ", outputfolder.listFiles(folderFilter).length == 26);
-        assertTrue("Output folder contains right number of tif image files ", outputfolder.listFiles(tifFilter).length == 52);
+        assertEquals("Output folder contains right number of files and folders ", 26, outputfolder.listFiles(folderFilter).length);
+        assertEquals("Output folder contains right number of tif image files ", 52, outputfolder.listFiles(tifFilter).length);
 
         File firstDatasetFolder = new File(outputDir + "/folder_GL01");
         assertTrue("Dataset folder was created ", firstDatasetFolder.exists() && firstDatasetFolder.isDirectory());
-        assertTrue("Dataset folder contains right number of files and folders ", firstDatasetFolder.listFiles(folderFilter).length == 0);
-        assertTrue("Dataset folder contains right number of tif image files ", firstDatasetFolder.listFiles(tifFilter).length == 6);
+        assertEquals("Dataset folder contains right number of files and folders ", 0, firstDatasetFolder.listFiles(folderFilter).length);
+        assertEquals("Dataset folder contains right number of tif image files ", 6, firstDatasetFolder.listFiles(tifFilter).length);
 
         cleanUp(outputfolder);
+    }
+
+
+    @Test
+    public void testWorkingWithAFile() {
+
+        String inputFile = "src/test/resources/file.tif";
+        String outputDir = "src/test/resources/file.tif_output";
+
+        String[] args = {
+                "mmpreprocess",
+                "-i",
+                inputFile,
+                "-o",
+                outputDir,
+                "-c",
+                "2",
+                "-cmin",
+                "1"
+
+        };
+
+        // -----------------------------------------
+        // for tracing
+        for (String param : args) {
+            IJ.log("mmp params " + param);
+        }
+
+        // -----------------------------------------
+        // Actually run MMPreprocess
+        MMPreprocess.running_as_Fiji_plugin = true;
+        MMPreprocess.main(args);
+
+
+        File outputfolder = new File(outputDir);
+        assertTrue("Output folder was created ", outputfolder.exists() && outputfolder.isDirectory());
+        assertEquals("Output folder contains right number of files and folders ", 26, outputfolder.listFiles(folderFilter).length);
+        assertEquals("Output folder contains right number of tif image files ", 52, outputfolder.listFiles(tifFilter).length);
+
+        File firstDatasetFolder = new File(outputDir + "/file.tif_GL01");
+        assertTrue("Dataset folder was created ", firstDatasetFolder.exists() && firstDatasetFolder.isDirectory());
+        assertEquals("Dataset folder contains right number of files and folders ", 0, firstDatasetFolder.listFiles(folderFilter).length);
+        assertEquals("Dataset folder contains right number of tif image files ", 6, firstDatasetFolder.listFiles(tifFilter).length);
+
+        cleanUp(outputfolder);
+    }
+
+    private FileFilter tifFilter = new FileFilter() {
+        @Override
+        public boolean accept(File pathname) {
+            return pathname.getName().endsWith(".tif");
+        }
+    };
+
+    private FileFilter folderFilter = new FileFilter() {
+        @Override
+        public boolean accept(File pathname) {
+            return pathname.isDirectory();
+        }
+    };
+
+
+    // delete files / folders recursively
+    private boolean cleanUp(File file) {
+        boolean result = true;
+        if (file.isDirectory()) {
+            for (File sub : file.listFiles()) {
+                result = result & cleanUp(sub);
+            }
+        }
+        return result & file.delete();
     }
 }
