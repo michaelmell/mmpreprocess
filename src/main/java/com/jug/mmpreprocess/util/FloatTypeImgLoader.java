@@ -25,6 +25,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author jug
@@ -695,4 +696,48 @@ public class FloatTypeImgLoader {
 		return max;
 	}
 
+
+	public static int getTimeFromFilename(String filename) {
+		return getParameterFromFilename(filename, "t");
+	}
+
+	public static int getChannelFromFilename(String filename) {
+		return getParameterFromFilename(filename, "c");
+	}
+
+	/**
+	 * This function looks for the last appearing _x0003 part in a filename like
+	 * /path_x3/test_xyz/filename_x33.tif and will return 33 in this case.
+	 *
+	 * @param filename
+	 * @param startsWith
+	 * @return
+	 */
+	private static int getParameterFromFilename(String filename, String startsWith) {
+		String[] arr = filename.split("_");
+
+		boolean resultValid = false;
+		int result = 0;
+		for (String item : arr) {
+			if (item.startsWith(startsWith)) {
+
+				for (int i = 1; i < item.length(); i++) {
+					String substr = item.substring(1, i+1);
+					if (isNumeric(substr))
+					{
+						result = Integer.parseInt(substr);
+						resultValid = true;
+					}
+				}
+			}
+		}
+		if (resultValid)
+		{
+			return result;
+		}
+		return 0;
+	}
+	private static boolean isNumeric(String text) {
+		return StringUtils.isNumeric(text);
+	}
 }
