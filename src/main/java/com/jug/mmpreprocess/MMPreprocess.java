@@ -3,6 +3,11 @@
  */
 package com.jug.mmpreprocess;
 
+import ij.IJ;
+import ij.ImageJ;
+import ij.ImagePlus;
+import ij.plugin.Duplicator;
+import ij.plugin.StackWriter;
 import java.io.File;
 import java.util.List;
 
@@ -212,8 +217,14 @@ public class MMPreprocess {
 		}
 
 		inputFolder = null;
+		File originalInputFolder = null;
 		if ( cmd.hasOption( "i" ) ) {
 			inputFolder = new File( cmd.getOptionValue( "i" ) );
+			originalInputFolder = inputFolder;
+
+			if (!inputFolder.isDirectory()) {
+				inputFolder = convertToFolder(inputFolder);
+			}
 
 			if ( !inputFolder.isDirectory() ) {
 				System.out.println( "Error: Input folder is not a directory!" );
@@ -235,7 +246,11 @@ public class MMPreprocess {
 
 		outputFolder = null;
 		if ( !cmd.hasOption( "o" ) ) {
-			outputFolder = new File( inputFolder.getAbsolutePath() + "/output/" );
+			if (originalInputFolder.isDirectory()) {
+				outputFolder = new File(originalInputFolder.getAbsolutePath() + "/output/");
+			} else {
+				outputFolder = new File(originalInputFolder.getAbsolutePath() + "_output/");
+			}
 			OUTPUT_PATH = outputFolder.getAbsolutePath();
 		} else {
 			outputFolder = new File( cmd.getOptionValue( "o" ) );
@@ -289,5 +304,65 @@ public class MMPreprocess {
 		if (cmd.hasOption("cw")) {
 			GL_CROP_WIDTH = Integer.parseInt(cmd.getOptionValue("cw"));
 		}
+	}
+
+
+	private static File convertToFolder(File file) {
+		// in case there is something wrong, return the file as it was. the main routine will check that and make a
+		// proper error message
+		if (!file.exists()) {
+			System.out.print("file doesn't exist");
+			return file;
+		}
+		if (!file.isFile()) {
+			System.out.print("file isn't a file");
+			return file;
+		}
+
+		String property = "java.io.tmpdir";
+		String tempDir = System.getProperty(property);
+
+		if (!tempDir.endsWith("/")) {
+			tempDir = tempDir + "/";
+		}
+
+		//System.out.println("OS current temporary directory is " + tempDir);
+		// System.out.println("input file: " + );
+		// makeDir(tempDir);
+		// System.exit(0);
+
+		String dirname = "tmp";
+		int counter = 0;
+		File tempDirectory;
+		while ((tempDirectory = new File(tempDir + dirname + counter)).exists()) {
+			counter ++;
+		}
+		tempDirectory.mkdirs();
+
+		String path = tempDirectory.getAbsolutePath();
+		if (!path.endsWith("/")) {
+			path = path + "/";
+		}
+
+		path = path + file.getName() + "/";
+		new File(path).mkdirs();
+
+
+		ImagePlus imp = IJ.openImage(file.getAbsolutePath());
+
+		for (int t = 1; t <= imp.getNFrames(); t++ ) {
+			//imp.setT(t);
+			for (int c = 1; c <= imp.getNChannels(); c++ ) {
+				//imp.setC(c);
+				ImagePlus slice = new Duplicator().run(imp, c,c,1,1, t,t);
+
+				String newLocation = path + file.getName() + "_t" + String.format("%04d", t)  + "_c" + String.format("%04d", c);
+				System.out.println("Saving to" + newLocation);
+				IJ.saveAsTiff(slice, newLocation);
+				new File(newLocation).deleteOnExit();
+			}
+		}
+		tempDirectory.deleteOnExit();
+		return new File(path);
 	}
 }
