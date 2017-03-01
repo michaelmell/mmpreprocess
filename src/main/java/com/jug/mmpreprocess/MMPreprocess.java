@@ -3,6 +3,7 @@
  */
 package com.jug.mmpreprocess;
 
+import com.jug.mmpreprocess.util.FloatTypeImgLoader;
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
@@ -11,6 +12,7 @@ import ij.plugin.StackWriter;
 import java.io.File;
 import java.util.List;
 
+import loci.formats.gui.ExtensionFileFilter;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -277,12 +279,26 @@ public class MMPreprocess {
 			OUTPUT_PATH = outputFolder.getAbsolutePath();
 		}
 
-		if ( cmd.hasOption( "cmin" ) ) {
-			MIN_CHANNEL_IDX = Integer.parseInt( cmd.getOptionValue( "cmin" ) );
+		// Determine min and max / num of channels by going through the input directory
+
+		int min_c = Integer.MAX_VALUE;
+		int max_c = Integer.MIN_VALUE;
+		for (File image : inputFolder.listFiles()) {
+			if (image.getName().toLowerCase().endsWith(".tif") || image.getName().toLowerCase().endsWith(".tiff")) {
+				int c = FloatTypeImgLoader.getChannelFromFilename(image.getName());
+				if (c < min_c) {
+					min_c = c;
+				}
+				if (c > max_c) {
+					max_c = c;
+				}
+			}
 		}
-		if ( cmd.hasOption( "c" ) ) {
-			NUM_CHANNELS = Integer.parseInt( cmd.getOptionValue( "c" ) );
-		}
+		//System.out.println("min_c: " + min_c);
+		//System.out.println("max_c: " + max_c);
+		MIN_CHANNEL_IDX = min_c;
+		NUM_CHANNELS = max_c - min_c + 1;
+
 
 		if ( cmd.hasOption( "tmin" ) ) {
 			MIN_TIME = Integer.parseInt( cmd.getOptionValue( "tmin" ) );
