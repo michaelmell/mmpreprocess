@@ -254,7 +254,9 @@ public class MMPreprocess {
 			OUTPUT_PATH = outputFolder.getAbsolutePath();
 		} else {
 			outputFolder = new File( cmd.getOptionValue( "o" ) );
-
+			if (! outputFolder.exists()) {
+				outputFolder.mkdirs();
+			}
 			if ( !outputFolder.isDirectory() ) {
 				System.out.println( "Error: Output folder is not a directory!" );
 				if (!running_as_Fiji_plugin) {
