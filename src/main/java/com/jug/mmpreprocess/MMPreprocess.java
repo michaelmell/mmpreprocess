@@ -335,7 +335,7 @@ public class MMPreprocess {
 					max_t = t;
 				}
 			}
-			MAX_TIME = max_t;
+			MAX_TIME = max_t + 1;
 		}
 
 		if ( cmd.hasOption( "bn" ) ) {
@@ -353,9 +353,7 @@ public class MMPreprocess {
 		if (cmd.hasOption("cw")) {
 			GL_CROP_WIDTH = Integer.parseInt(cmd.getOptionValue("cw"));
 		}
-		if (cmd.hasOption("so")) {
-			STACK_OUTPUT = true;
-		}
+		STACK_OUTPUT = cmd.hasOption("so");
 	}
 
 	private static void convertImageSequenceFolderToStack(File file) {

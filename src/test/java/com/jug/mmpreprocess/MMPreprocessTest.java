@@ -20,6 +20,12 @@ public class MMPreprocessTest {
         String inputDir = "src/test/resources/folder";
         String outputDir = "src/test/resources/folder/output";
 
+
+        File outputfolder = new File(outputDir);
+        if (outputfolder.exists()) {
+            MMUtils.deleteFolderRecursive(outputfolder);
+        }
+
         String[] args = {
                 "mmpreprocess",
                 "-i",
@@ -45,7 +51,7 @@ public class MMPreprocessTest {
         MMPreprocess.main(args);
 
 
-        File outputfolder = new File(outputDir);
+        outputfolder = new File(outputDir);
         assertTrue("Output folder was created ", outputfolder.exists() && outputfolder.isDirectory());
         assertEquals("Output folder contains right number of files and folders ", 26, outputfolder.listFiles(MMUtils.folderFilter).length);
         assertEquals("Output folder contains right number of tif image files ", 52, outputfolder.listFiles(MMUtils.tifFilter).length);
@@ -64,6 +70,12 @@ public class MMPreprocessTest {
 
         String inputFile = "src/test/resources/file.tif";
         String outputDir = "src/test/resources/file.tif_output";
+
+
+        File outputfolder = new File(outputDir);
+        if (outputfolder.exists()) {
+            MMUtils.deleteFolderRecursive(outputfolder);
+        }
 
         String[] args = {
                 "mmpreprocess",
@@ -90,7 +102,7 @@ public class MMPreprocessTest {
         MMPreprocess.main(args);
 
 
-        File outputfolder = new File(outputDir);
+        outputfolder = new File(outputDir);
         assertTrue("Output folder was created ", outputfolder.exists() && outputfolder.isDirectory());
         assertEquals("Output folder contains right number of files and folders ", 26, outputfolder.listFiles(MMUtils.folderFilter).length);
         assertEquals("Output folder contains right number of tif image files ", 52, outputfolder.listFiles(MMUtils.tifFilter).length);
@@ -110,6 +122,11 @@ public class MMPreprocessTest {
 
         String inputFile = "src/test/resources/file.tif";
         String outputDir = "src/test/resources/file.tif_output";
+
+        File outputfolder = new File(outputDir);
+        if (outputfolder.exists()) {
+            MMUtils.deleteFolderRecursive(outputfolder);
+        }
 
         String[] args = {
                 "mmpreprocess",
@@ -132,7 +149,7 @@ public class MMPreprocessTest {
         MMPreprocess.main(args);
 
 
-        File outputfolder = new File(outputDir);
+        outputfolder = new File(outputDir);
         assertTrue("Output folder was created ", outputfolder.exists() && outputfolder.isDirectory());
         assertEquals("Output folder contains right number of files and folders ", 26, outputfolder.listFiles(MMUtils.folderFilter).length);
         assertEquals("Output folder contains right number of tif image files ", 52, outputfolder.listFiles(MMUtils.tifFilter).length);
@@ -151,6 +168,12 @@ public class MMPreprocessTest {
 
         String inputFile = "src/test/resources/file.tif";
         String outputDir = "src/test/resources/file.tif_output";
+
+
+        File outputfolder = new File(outputDir);
+        if (outputfolder.exists()) {
+            MMUtils.deleteFolderRecursive(outputfolder);
+        }
 
         String[] args = {
                 "mmpreprocess",
@@ -175,7 +198,7 @@ public class MMPreprocessTest {
         MMPreprocess.main(args);
 
 
-        File outputfolder = new File(outputDir);
+        outputfolder = new File(outputDir);
         assertTrue("Output folder was created ", outputfolder.exists() && outputfolder.isDirectory());
         assertEquals("Output folder contains right number of files and folders ", 26, outputfolder.listFiles(MMUtils.folderFilter).length);
         assertEquals("Output folder contains right number of tif image files ", 52, outputfolder.listFiles(MMUtils.tifFilter).length);
