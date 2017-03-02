@@ -326,15 +326,17 @@ public class MMPreprocess {
 
 		if ( cmd.hasOption( "tmax" ) ) {
 			MAX_TIME = Integer.parseInt( cmd.getOptionValue( "tmax" ) );
-		} else {
-			int max_t = Integer.MIN_VALUE;
-			for (File image : inputFolder.listFiles(MMUtils.tifFilter)) {
+		}
 
-				int t = FloatTypeImgLoader.getChannelFromFilename(image.getName());
-				if (t > max_t) {
-					max_t = t;
-				}
+		int max_t = Integer.MIN_VALUE;
+		for (File image : inputFolder.listFiles(MMUtils.tifFilter)) {
+
+			int t = FloatTypeImgLoader.getChannelFromFilename(image.getName());
+			if (t > max_t) {
+				max_t = t;
 			}
+		}
+		if (MAX_TIME > max_t + 1) {
 			MAX_TIME = max_t + 1;
 		}
 

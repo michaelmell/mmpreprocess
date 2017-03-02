@@ -21,41 +21,38 @@ public class MMPreprocessingPlugin implements PlugIn {
         // -----------------------------------------
         // plugin configuration
         GenericDialogPlus gd = new GenericDialogPlus("MMPreprocessing Configuration");
-        gd.addDirectoryField("Input_folder", currentDir);
+        if (s.equals("file")) {
+            gd.addFileField("Input_file", currentDir);
+        } else {
+            gd.addDirectoryField("Input_folder", currentDir);
+        }
         gd.addDirectoryField("Output_folder", currentDir);
-        gd.addNumericField("Number_of_Channels", 2, 0);
-        gd.addNumericField("Channels_start_with (usually 0 or 1)", 1, 0);
         gd.addNumericField("Number_of_Time_points", 40, 0);
         gd.addNumericField("Time_points_start_with (usually 0 or 1)", 1, 0);
         gd.addMessage("Advanced parameters");
         gd.addNumericField("Variance_threshold", 0.001, 8);
         gd.addNumericField("Lateral_offset", 40, 0);
         gd.addNumericField("Crop_width", 100, 0);
+        gd.addCheckbox("Save results as stacks", false);
         gd.showDialog();
         if (gd.wasCanceled()) {
             return;
         }
-        String inputFolder = gd.getNextString();
+        String inputFolderOrFile = gd.getNextString();
         String outputFolder = gd.getNextString();
-        int numberOfChannels = (int)gd.getNextNumber();
-        int channelStartIndex = (int)gd.getNextNumber();
         int numberOfTimePoints = (int)gd.getNextNumber();
         int timePointStartIndex = (int)gd.getNextNumber();
         double varianceThreshold = gd.getNextNumber();
         int lateralOffset = (int)gd.getNextNumber();
         int cropWidth = (int)gd.getNextNumber();
-
+        boolean saveResultsAsStacks = gd.getNextBoolean();
 
         String[] args = {
                 "mmpreprocess",
                 "-i",
-                inputFolder,
+                inputFolderOrFile,
                 "-o",
                 outputFolder,
-                "-c",
-                "" + (numberOfChannels),
-                "-cmin",
-                "" + channelStartIndex,
                 "-tmin",
                 "" + timePointStartIndex,
                 "-tmax",
@@ -66,6 +63,7 @@ public class MMPreprocessingPlugin implements PlugIn {
                 "" + lateralOffset,
                 "-cw",
                 "" + cropWidth,
+                saveResultsAsStacks?"-so":""
         };
 
         // -----------------------------------------
