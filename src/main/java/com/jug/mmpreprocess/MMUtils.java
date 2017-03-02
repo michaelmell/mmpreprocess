@@ -3,6 +3,8 @@
  */
 package com.jug.mmpreprocess;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -292,4 +294,30 @@ public class MMUtils {
 
 		return growthLines;
 	}
+
+	// delete files / folders recursively
+    public static boolean deleteFolderRecursive(File file) {
+        boolean result = true;
+        if (file.isDirectory()) {
+            for (File sub : file.listFiles()) {
+                result = result & deleteFolderRecursive(sub);
+            }
+        }
+        return result & file.delete();
+    }
+
+
+	public static FileFilter tifFilter = new FileFilter() {
+		@Override
+		public boolean accept(File pathname) {
+			return pathname.getName().endsWith(".tif");
+		}
+	};
+
+	public static FileFilter folderFilter = new FileFilter() {
+		@Override
+		public boolean accept(File pathname) {
+			return pathname.isDirectory();
+		}
+	};
 }

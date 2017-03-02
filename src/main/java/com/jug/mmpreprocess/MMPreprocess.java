@@ -5,14 +5,15 @@ package com.jug.mmpreprocess;
 
 import com.jug.mmpreprocess.util.FloatTypeImgLoader;
 import ij.IJ;
-import ij.ImageJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.plugin.Duplicator;
-import ij.plugin.StackWriter;
+import ij.plugin.HyperStackConverter;
+import ij.process.ImageStatistics;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
-import loci.formats.gui.ExtensionFileFilter;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -49,6 +50,8 @@ public class MMPreprocess {
 	private static double VARIANCE_THRESHOLD = 0.001;// 0.00001; // may be modified in parseCommandLineArgs()
 	private static int LATERAL_OFFSET = 40; //10; // may be modified in parseCommandLineArgs()
 	private static int GL_CROP_WIDTH = 100; //40; // may be modified in parseCommandLineArgs()
+
+	private static boolean STACK_OUTPUT = false;
 
 	/**
 	 * @param args
@@ -117,6 +120,10 @@ public class MMPreprocess {
 			frame.dropImageData();
 		}
 
+		if (STACK_OUTPUT) {
+			convertImageSequenceFolderToStack(outputFolder);
+		}
+
 //		new ImageJ();
 //		ImageJFunctions.show( firstFrame.getChannel( 0 ), "DEBUG" );
 		if (!running_as_Fiji_plugin) {
@@ -147,7 +154,7 @@ public class MMPreprocess {
 
 		final Option numChannelsOption =
 				new Option( "c", "channels", true, "number of channels to be loaded and analyzed." );
-		numChannelsOption.setRequired( true );
+		numChannelsOption.setRequired( false );
 
 		final Option minChannelIdxOption =
 				new Option( "cmin", "min_channel", true, "the smallest channel index (usually 0 or 1, default is 1)." );
@@ -176,6 +183,9 @@ public class MMPreprocess {
 				new Option("cw", "crop_width", true, "crop width help text missing!");
 		cropWidth.setRequired(false);
 
+		final Option stackOutput =
+				new Option("so", "stackout", false, "use this option to output a singe image stack .tif file.");
+
 
 		options.addOption( help );
 		options.addOption( numChannelsOption );
@@ -188,6 +198,7 @@ public class MMPreprocess {
 		options.addOption( varianceThreshold );
 		options.addOption( lateralOffset );
 		options.addOption( cropWidth );
+		options.addOption( stackOutput );
 
 
 		// get the commands parsed
@@ -225,7 +236,7 @@ public class MMPreprocess {
 			originalInputFolder = inputFolder;
 
 			if (!inputFolder.isDirectory()) {
-				inputFolder = convertToFolder(inputFolder);
+				inputFolder = convertFileToTempFolder(inputFolder);
 			}
 
 			if ( !inputFolder.isDirectory() ) {
@@ -283,15 +294,14 @@ public class MMPreprocess {
 
 		int min_c = Integer.MAX_VALUE;
 		int max_c = Integer.MIN_VALUE;
-		for (File image : inputFolder.listFiles()) {
-			if (image.getName().toLowerCase().endsWith(".tif") || image.getName().toLowerCase().endsWith(".tiff")) {
-				int c = FloatTypeImgLoader.getChannelFromFilename(image.getName());
-				if (c < min_c) {
-					min_c = c;
-				}
-				if (c > max_c) {
-					max_c = c;
-				}
+
+		for (File image : inputFolder.listFiles(MMUtils.tifFilter)) {
+			int c = FloatTypeImgLoader.getChannelFromFilename(image.getName());
+			if (c < min_c) {
+				min_c = c;
+			}
+			if (c > max_c) {
+				max_c = c;
 			}
 		}
 		//System.out.println("min_c: " + min_c);
@@ -302,9 +312,30 @@ public class MMPreprocess {
 
 		if ( cmd.hasOption( "tmin" ) ) {
 			MIN_TIME = Integer.parseInt( cmd.getOptionValue( "tmin" ) );
+		} else {
+			int min_t = Integer.MAX_VALUE;
+			for (File image : inputFolder.listFiles(MMUtils.tifFilter)) {
+
+				int t = FloatTypeImgLoader.getChannelFromFilename(image.getName());
+				if (t < min_t) {
+					min_t = t;
+				}
+			}
+			MIN_TIME = min_t;
 		}
+
 		if ( cmd.hasOption( "tmax" ) ) {
 			MAX_TIME = Integer.parseInt( cmd.getOptionValue( "tmax" ) );
+		} else {
+			int max_t = Integer.MIN_VALUE;
+			for (File image : inputFolder.listFiles(MMUtils.tifFilter)) {
+
+				int t = FloatTypeImgLoader.getChannelFromFilename(image.getName());
+				if (t > max_t) {
+					max_t = t;
+				}
+			}
+			MAX_TIME = max_t;
 		}
 
 		if ( cmd.hasOption( "bn" ) ) {
@@ -322,10 +353,56 @@ public class MMPreprocess {
 		if (cmd.hasOption("cw")) {
 			GL_CROP_WIDTH = Integer.parseInt(cmd.getOptionValue("cw"));
 		}
+		if (cmd.hasOption("so")) {
+			STACK_OUTPUT = true;
+		}
 	}
 
+	private static void convertImageSequenceFolderToStack(File file) {
+		for (File folder : file.listFiles(MMUtils.folderFilter)) {
+			ImageStack stack = null;
 
-	private static File convertToFolder(File file) {
+			File firstFile = null;
+
+			for (File image : folder.listFiles(MMUtils.tifFilter)) {
+
+				ImagePlus imp = new ImagePlus(image.getAbsolutePath());
+				if (imp.getNChannels() == 1) {
+					if (firstFile == null || stack == null) {
+						firstFile = image;
+						stack = new ImageStack(imp.getWidth(), imp.getHeight());
+					}
+
+					System.out.println("" + imp.getWidth() + "/" + imp.getHeight() + "/" + imp.getNChannels() + "/" + imp.getNSlices() + "/" + imp.getNFrames());
+					stack.addSlice(imp.getProcessor());
+				}
+			}
+			ImagePlus impStack = new ImagePlus(file.getName(), stack);
+			int numFrames = MAX_TIME - MIN_TIME + 1;
+			int numSlices = impStack.getNSlices() / NUM_CHANNELS / numFrames;
+			ImagePlus hyperStack = HyperStackConverter.toHyperStack(impStack, NUM_CHANNELS, numFrames, numSlices);
+
+			String newFilename = firstFile.getName();
+			newFilename = newFilename.replace(String.format("_c%04d", MIN_CHANNEL_IDX), "");
+			newFilename = newFilename.replace(String.format("_t%04d", MIN_TIME), "");
+			newFilename = folder.getAbsolutePath() + "/" + newFilename;
+
+			System.out.println("Save to: " + newFilename);
+
+			for (File image : folder.listFiles(MMUtils.tifFilter)) {
+				image.delete();
+			}
+
+			for (int c = 1; c <= hyperStack.getNChannels(); c++ ) {
+				hyperStack.setC(c);
+				ImageStatistics stats = hyperStack.getStatistics(ImageStatistics.MIN_MAX);
+				hyperStack.setDisplayRange(stats.min, stats.max);
+			}
+			IJ.saveAsTiff(hyperStack, newFilename);
+		}
+	}
+
+	private static File convertFileToTempFolder(File file) {
 		// in case there is something wrong, return the file as it was. the main routine will check that and make a
 		// proper error message
 		if (!file.exists()) {
