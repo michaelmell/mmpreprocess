@@ -27,7 +27,7 @@ public class MMPreprocessingPlugin implements PlugIn {
             gd.addDirectoryField("Input_folder", currentDir);
         }
         gd.addDirectoryField("Output_folder", currentDir);
-        gd.addNumericField("Number_of_Time_points", 40, 0);
+        gd.addNumericField("Number_of_Time_points (enter -1 to process all)", -1, 0);
         gd.addNumericField("Time_points_start_with (usually 0 or 1)", 1, 0);
         gd.addMessage("Advanced parameters");
         gd.addNumericField("Variance_threshold", 0.001, 8);
