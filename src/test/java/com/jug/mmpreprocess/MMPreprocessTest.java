@@ -267,11 +267,12 @@ public class MMPreprocessTest {
 
         MMUtils.deleteFolderRecursive(outputfolder);
     }
-/*
+
+    /*
     @Test
     public void tempTest() {
-        String inputDir = "/Users/rhaase/temp/moma_test2/1_registered/moma_test2.tif";
-        String outputDir = "/Users/rhaase/temp/moma_test2/2_split";
+        String inputDir = "/Users/rhaase/temp/moma_test3//moma_test3B.tif_1_registered/moma_test3B.tif";
+        String outputDir = "/Users/rhaase/temp/moma_test3//moma_test3B.tif_2_split/";
 
         String[] args = {
                 "mmpreprocess",
@@ -282,7 +283,7 @@ public class MMPreprocessTest {
                 "-tmin",
                 "1",
                 "-tmax",
-                "40",
+                "0",
                 "-vt",
                 "0.001",
                 "-lo",
@@ -290,6 +291,24 @@ public class MMPreprocessTest {
                 "-cw",
                 "100"
         };
+
+//        String[] args = {
+//                "mmpreprocess",
+//                "-i",
+//                inputDir,
+//                "-o",
+//                outputDir,
+//                "-tmin",
+//                "1",
+//                "-tmax",
+//                "40",
+//                "-vt",
+//                "0.001",
+//                "-lo",
+//                "40",
+//                "-cw",
+//                "100"
+//        };
 
         // -----------------------------------------
         // for tracing
