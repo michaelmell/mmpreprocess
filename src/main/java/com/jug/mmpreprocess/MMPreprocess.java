@@ -451,8 +451,8 @@ public class MMPreprocess {
 				//imp.setC(c);
 				ImagePlus slice = new Duplicator().run(imp, c,c,1,1, t,t);
 
-				String newLocation = path + file.getName() + "_t" + String.format("%04d", t)  + "_c" + String.format("%04d", c);
-				System.out.println("Saving to" + newLocation);
+				String newLocation = path + file.getName() + "_t" + String.format("%04d", t)  + "_c" + String.format("%04d", c) + ".tif";
+				System.out.println("Saving to " + newLocation);
 				IJ.saveAsTiff(slice, newLocation);
 				new File(newLocation).deleteOnExit();
 			}
