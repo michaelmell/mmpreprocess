@@ -380,7 +380,7 @@ public class MMPreprocess {
 			ImagePlus impStack = new ImagePlus(file.getName(), stack);
 			int numFrames = MAX_TIME - MIN_TIME + 1;
 			int numSlices = impStack.getNSlices() / NUM_CHANNELS / numFrames;
-			ImagePlus hyperStack = HyperStackConverter.toHyperStack(impStack, NUM_CHANNELS, numFrames, numSlices);
+			ImagePlus hyperStack = HyperStackConverter.toHyperStack(impStack, NUM_CHANNELS, numSlices, numFrames);
 
 			String newFilename = firstFile.getName();
 			newFilename = newFilename.replace(String.format("_c%04d", MIN_CHANNEL_IDX), "");
