@@ -58,10 +58,10 @@ public class MMDataFrame {
 
 		sanityChecks();
 
-		final int start = channelSourceFilenames.get( 0 ).indexOf( "_t" ) + 2;
-		final String strT = channelSourceFilenames.get( 0 ).substring( start, start + 4 );
+		//final int start = channelSourceFilenames.get( 0 ).indexOf( "_t" ) + 2;
+		//final String strT = channelSourceFilenames.get( 0 ).substring( start, start + 4 );
 		try {
-			this.t = Integer.parseInt( strT );
+			this.t = FloatTypeImgLoader.getTimeFromFilename(channelSourceFilenames.get( 0 )); //Integer.parseInt( strT );
 		} catch ( final NumberFormatException e ) {
 			throw new IllegalArgumentException( String.format(
 					"ERROR\tFile list corrupt. Time could not be extracted for file %s.",
