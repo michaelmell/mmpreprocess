@@ -33,7 +33,7 @@ public class MMPreprocessingPlugin implements PlugIn {
         gd.addNumericField("Variance_threshold", 0.001, 8);
         gd.addNumericField("Lateral_offset", 40, 0);
         gd.addNumericField("Crop_width", 100, 0);
-        gd.addCheckbox("Save results as stacks", false);
+        gd.addCheckbox("Save results as image sequence", false);
         gd.showDialog();
         if (gd.wasCanceled()) {
             return;
@@ -45,7 +45,7 @@ public class MMPreprocessingPlugin implements PlugIn {
         double varianceThreshold = gd.getNextNumber();
         int lateralOffset = (int)gd.getNextNumber();
         int cropWidth = (int)gd.getNextNumber();
-        boolean saveResultsAsStacks = gd.getNextBoolean();
+        boolean saveResultsAsImageSequence = gd.getNextBoolean();
 
         String[] args = {
                 "mmpreprocess",
@@ -56,14 +56,14 @@ public class MMPreprocessingPlugin implements PlugIn {
                 "-tmin",
                 "" + timePointStartIndex,
                 "-tmax",
-                "" + (timePointStartIndex + numberOfTimePoints),
+                "" + (timePointStartIndex + numberOfTimePoints - 1),
                 "-vt",
                 "" + varianceThreshold,
                 "-lo",
                 "" + lateralOffset,
                 "-cw",
                 "" + cropWidth,
-                saveResultsAsStacks?"-so":""
+                saveResultsAsImageSequence?"-so":""
         };
 
         // -----------------------------------------
