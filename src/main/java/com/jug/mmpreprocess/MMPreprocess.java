@@ -11,7 +11,6 @@ import ij.plugin.Duplicator;
 import ij.plugin.HyperStackConverter;
 import ij.process.ImageStatistics;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.cli.BasicParser;
@@ -51,13 +50,15 @@ public class MMPreprocess {
 	private static int LATERAL_OFFSET = 40; //10; // may be modified in parseCommandLineArgs()
 	private static int GL_CROP_WIDTH = 100; //40; // may be modified in parseCommandLineArgs()
 
-	private static boolean STACK_OUTPUT = false;
+	private static boolean SEQUENCE_OUTPUT = false;
 
 	/**
 	 * @param args
 	 */
 	public static void main( final String[] args ) {
 		parseCommandLineArgs( args );
+
+		System.out.println("maxtime: " + MAX_TIME);
 
 		// assemble file-list to process
 		final MMDataSource dataSource =
@@ -120,7 +121,7 @@ public class MMPreprocess {
 			frame.dropImageData();
 		}
 
-		if (STACK_OUTPUT) {
+		if (!SEQUENCE_OUTPUT) {
 			convertImageSequenceFolderToStack(outputFolder);
 		}
 
@@ -183,8 +184,8 @@ public class MMPreprocess {
 				new Option("cw", "crop_width", true, "crop width help text missing!");
 		cropWidth.setRequired(false);
 
-		final Option stackOutput =
-				new Option("so", "stackout", false, "use this option to output a singe image stack .tif file.");
+		final Option sequenceOutput =
+				new Option("so", "sequenceoutput", false, "use this option to output a sequence of .tif files as output.");
 
 
 		options.addOption( help );
@@ -198,7 +199,7 @@ public class MMPreprocess {
 		options.addOption( varianceThreshold );
 		options.addOption( lateralOffset );
 		options.addOption( cropWidth );
-		options.addOption( stackOutput );
+		options.addOption( sequenceOutput );
 
 
 		// get the commands parsed
@@ -355,7 +356,7 @@ public class MMPreprocess {
 		if (cmd.hasOption("cw")) {
 			GL_CROP_WIDTH = Integer.parseInt(cmd.getOptionValue("cw"));
 		}
-		STACK_OUTPUT = cmd.hasOption("so");
+		SEQUENCE_OUTPUT = cmd.hasOption("so");
 	}
 
 	private static void convertImageSequenceFolderToStack(File file) {
