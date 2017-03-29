@@ -367,7 +367,7 @@ public class MMPreprocess {
 			for (File image : folder.listFiles(MMUtils.tifFilter)) {
 
 				ImagePlus imp = new ImagePlus(image.getAbsolutePath());
-				if (imp.getNChannels() == 1) {
+				if (imp.getNChannels() == 1 && imp.getNSlices() == 1) {
 					if (firstFile == null || stack == null) {
 						firstFile = image;
 						stack = new ImageStack(imp.getWidth(), imp.getHeight());
