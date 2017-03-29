@@ -162,7 +162,7 @@ public class MMPreprocess {
 		minChannelIdxOption.setRequired( false );
 
 		final Option infolder = new Option( "i", "infolder", true, "folder to read data from" );
-		infolder.setRequired( false );
+		infolder.setRequired( true );
 
 		final Option outfolder =
 				new Option( "o", "outfolder", true, "folder to write preprocessed data to (equals infolder if not given)" );
