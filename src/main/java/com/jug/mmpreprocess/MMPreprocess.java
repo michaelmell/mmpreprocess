@@ -317,7 +317,7 @@ public class MMPreprocess {
 			int min_t = Integer.MAX_VALUE;
 			for (File image : inputFolder.listFiles(MMUtils.tifFilter)) {
 
-				int t = FloatTypeImgLoader.getChannelFromFilename(image.getName());
+				int t = FloatTypeImgLoader.getTimeFromFilename(image.getName());
 				if (t < min_t) {
 					min_t = t;
 				}
@@ -331,14 +331,13 @@ public class MMPreprocess {
 			int max_t = Integer.MIN_VALUE;
 			for (File image : inputFolder.listFiles(MMUtils.tifFilter)) {
 
-				int t = FloatTypeImgLoader.getChannelFromFilename(image.getName());
+				int t = FloatTypeImgLoader.getTimeFromFilename(image.getName());
 				if (t > max_t) {
 					max_t = t;
 				}
 			}
-			if (MAX_TIME > max_t + 1) {
-				MAX_TIME = max_t + 1;
-			}
+			MAX_TIME = max_t;
+
 		}
 
 		if ( cmd.hasOption( "bn" ) ) {
