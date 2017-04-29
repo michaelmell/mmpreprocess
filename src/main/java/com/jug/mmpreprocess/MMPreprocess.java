@@ -11,6 +11,8 @@ import ij.plugin.Duplicator;
 import ij.plugin.HyperStackConverter;
 import ij.process.ImageStatistics;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.cli.BasicParser;
@@ -364,7 +366,11 @@ public class MMPreprocess {
 
 			File firstFile = null;
 
-			for (File image : folder.listFiles(MMUtils.tifFilter)) {
+			File[] filelist = folder.listFiles(MMUtils.tifFilter);
+			Arrays.sort(filelist);
+
+			for (File image : filelist) {
+
 
 				ImagePlus imp = new ImagePlus(image.getAbsolutePath());
 				if (imp.getNChannels() == 1 && imp.getNSlices() == 1) {
@@ -372,8 +378,7 @@ public class MMPreprocess {
 						firstFile = image;
 						stack = new ImageStack(imp.getWidth(), imp.getHeight());
 					}
-
-					System.out.println("" + imp.getWidth() + "/" + imp.getHeight() + "/" + imp.getNChannels() + "/" + imp.getNSlices() + "/" + imp.getNFrames());
+					System.out.println("packing " + image.getName() + " " + imp.getWidth() + "/" + imp.getHeight() + "/" + imp.getNChannels() + "/" + imp.getNSlices() + "/" + imp.getNFrames());
 					stack.addSlice(imp.getProcessor());
 				}
 			}
