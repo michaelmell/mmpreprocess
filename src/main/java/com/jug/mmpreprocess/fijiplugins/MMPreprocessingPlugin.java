@@ -68,8 +68,9 @@ public class MMPreprocessingPlugin implements PlugIn {
 
         // -----------------------------------------
         // for tracing
+        System.out.println("mmp parameters: ");
         for (String param : args) {
-            IJ.log("mmp params " + param);
+            System.out.println(" " + param);
         }
 
         // -----------------------------------------
