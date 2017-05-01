@@ -41,7 +41,7 @@ public class MMDataSource {
 		}
 
 		final File[] fileArray =
-				inputFolder.listFiles( new ExtensionFileFilter( extensions, ".tif and .tiff" ) );
+				inputFolder.listFiles( /*new ExtensionFileFilter( extensions, ".tif and .tiff" )*/ MMUtils.tifFilter );
 		final List< String > listOfImageFilesnames = new ArrayList< String >( fileArray.length );
 		for ( final File file : fileArray ) {
 			if ( !file.isDirectory() ) {
