@@ -369,21 +369,35 @@ public class MMPreprocess {
 			File[] filelist = folder.listFiles(MMUtils.tifFilter);
 			Arrays.sort(filelist);
 
+
+			int minTime = 0;
+			int maxTime = 0;
+
 			for (File image : filelist) {
 
 
 				ImagePlus imp = new ImagePlus(image.getAbsolutePath());
 				if (imp.getNChannels() == 1 && imp.getNSlices() == 1) {
+					int timeFromFilename = FloatTypeImgLoader.getTimeFromFilename(image.getName());
 					if (firstFile == null || stack == null) {
 						firstFile = image;
 						stack = new ImageStack(imp.getWidth(), imp.getHeight());
+
+						minTime = timeFromFilename;
+						maxTime = timeFromFilename;
+					}
+					if (minTime > timeFromFilename) {
+						minTime = timeFromFilename;
+					}
+					if (maxTime < timeFromFilename) {
+						maxTime = timeFromFilename;
 					}
 					System.out.println("packing " + image.getName() + " " + imp.getWidth() + "/" + imp.getHeight() + "/" + imp.getNChannels() + "/" + imp.getNSlices() + "/" + imp.getNFrames());
 					stack.addSlice(imp.getProcessor());
 				}
 			}
 			ImagePlus impStack = new ImagePlus(file.getName(), stack);
-			int numFrames = MAX_TIME - MIN_TIME + 1;
+			int numFrames = maxTime - minTime + 1;
 			int numSlices = impStack.getNSlices() / NUM_CHANNELS / numFrames;
 
 			System.out.println("convert from stack with " + impStack.getNSlices());
