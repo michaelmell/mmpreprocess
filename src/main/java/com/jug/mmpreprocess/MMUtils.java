@@ -310,7 +310,7 @@ public class MMUtils {
 	public static FileFilter tifFilter = new FileFilter() {
 		@Override
 		public boolean accept(File pathname) {
-			return pathname.getName().endsWith(".tif");
+			return pathname.getName().endsWith(".tif") && (!pathname.getName().startsWith("."));
 		}
 	};
 
