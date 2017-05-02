@@ -3,15 +3,7 @@
  */
 package com.jug.mmpreprocess;
 
-import com.jug.mmpreprocess.util.FloatTypeImgLoader;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.plugin.Duplicator;
-import ij.plugin.HyperStackConverter;
-import ij.process.ImageStatistics;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,6 +14,15 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+
+import com.jug.mmpreprocess.util.FloatTypeImgLoader;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.plugin.Duplicator;
+import ij.plugin.HyperStackConverter;
+import ij.process.ImageStatistics;
 
 /**
  * @author jug
@@ -46,13 +47,14 @@ public class MMPreprocess {
 	private static File outputFolder;
 
 	// global parameters
-	private static double INTENSITY_THRESHOLD;   // set in parseCommandLineArgs()
-	private static final int BOTTOM_PADDING = 0;
-	private static final int TOP_PADDING = 25;
-	private static final int GL_MIN_LENGTH = 250;
-	private static double VARIANCE_THRESHOLD = 0.001;// 0.00001; // may be modified in parseCommandLineArgs()
-	private static int LATERAL_OFFSET = 40; //10; // may be modified in parseCommandLineArgs()
-	private static int GL_CROP_WIDTH = 100; //40; // may be modified in parseCommandLineArgs()
+	private static boolean DEBUG = false;
+	private static double INTENSITY_THRESHOLD;        // set in parseCommandLineArgs()
+	private static int BOTTOM_PADDING = 0;            // may be modified in parseCommandLineArgs()
+	private static int TOP_PADDING = 25;              // may be modified in parseCommandLineArgs()
+	private static int GL_MIN_LENGTH = 250;           // may be modified in parseCommandLineArgs()
+	private static double VARIANCE_THRESHOLD = 0.001; // may be modified in parseCommandLineArgs()
+	private static int LATERAL_OFFSET = 40;           // may be modified in parseCommandLineArgs()
+	private static int GL_CROP_WIDTH = 100;           // may be modified in parseCommandLineArgs()
 
 	private static boolean SEQUENCE_OUTPUT = false;
 
@@ -97,7 +99,8 @@ public class MMPreprocess {
 						VARIANCE_THRESHOLD,
 						GL_MIN_LENGTH,
 						TOP_PADDING,
-						BOTTOM_PADDING );
+						BOTTOM_PADDING,
+						DEBUG );
 
 		//TODO average some to do stuff below, here I only take 1st frame
 		firstFrame.crop( tightCropArea );
@@ -181,20 +184,25 @@ public class MMPreprocess {
 		hasBrightNumbers.setRequired( false );
 
 		final Option varianceThreshold =
-				new Option("vt", "variance_threshold", true, "variance threshold help text missing!");
+				new Option( "vt", "variance_threshold", true, "used to identify the pixel rows containing growth channels (intesity variance per row)." );
 		varianceThreshold.setRequired(false);
 
 		final Option lateralOffset =
-				new Option("lo", "lateral_offset", true, "lateral offset help text missing!");
+				new Option( "lo", "lateral_offset", true, "lateral offset in entire input images that will not be considered." );
 		lateralOffset.setRequired(false);
 
 		final Option cropWidth =
-				new Option("cw", "crop_width", true, "crop width help text missing!");
+				new Option( "cw", "crop_width", true, "the widht of the cut images (centered on identified growth channel center lines)." );
 		cropWidth.setRequired(false);
 
 		final Option sequenceOutput =
 				new Option("so", "sequenceoutput", false, "use this option to output a sequence of .tif files as output.");
 
+		final Option glMinLength =
+				new Option( "gl_minl", "gl_min_length", true, "min length of the grwoth channels in this image (longer avoids erroneous cropping)." );
+
+		final Option debugSwitch =
+				new Option( "d", "debug", false, "print additional debug output when used." );
 
 		options.addOption( help );
 		options.addOption( numChannelsOption );
@@ -209,6 +217,8 @@ public class MMPreprocess {
 		options.addOption( lateralOffset );
 		options.addOption( cropWidth );
 		options.addOption( sequenceOutput );
+		options.addOption( glMinLength );
+		options.addOption( debugSwitch );
 
 
 		// get the commands parsed
@@ -218,7 +228,7 @@ public class MMPreprocess {
 		} catch ( final ParseException e1 ) {
 			final HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp(
-					"... -i [in-folder] -o [out-folder] -c <num-channels> -cmin [start-channel-ids] -tmin [idx] -tmax [idx] -s [sigma] [-bn]",
+					"...",
 					"",
 					options,
 					"Error: " + e1.getMessage() );
@@ -232,7 +242,7 @@ public class MMPreprocess {
 		if ( cmd.hasOption( "help" ) ) {
 			final HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp(
-					"... -i [in-folder] -o [out-folder] -c <num-channels> -cmin [start-channel-ids] -tmin [idx] -tmax [idx] -s [sigma] [-bn]",
+					"...",
 					options );
 			if (!running_as_Fiji_plugin) {
 				System.exit(0);
@@ -302,13 +312,21 @@ public class MMPreprocess {
 			OUTPUT_PATH = outputFolder.getAbsolutePath();
 		}
 
+		if ( cmd.hasOption( "gl_minl" ) ) {
+			GL_MIN_LENGTH = Integer.parseInt( cmd.getOptionValue( "gl_minl" ) );
+		}
+
+		if ( cmd.hasOption( "d" ) ) {
+			DEBUG = true;
+		}
+
 		// Determine min and max / num of channels by going through the input directory
 
 		int min_c = Integer.MAX_VALUE;
 		int max_c = Integer.MIN_VALUE;
 
-		for (File image : inputFolder.listFiles(MMUtils.tifFilter)) {
-			int c = FloatTypeImgLoader.getChannelFromFilename(image.getName());
+		for (final File image : inputFolder.listFiles(MMUtils.tifFilter)) {
+			final int c = FloatTypeImgLoader.getChannelFromFilename(image.getName());
 			if (c < min_c) {
 				min_c = c;
 			}
@@ -326,9 +344,9 @@ public class MMPreprocess {
 			MIN_TIME = Integer.parseInt( cmd.getOptionValue( "tmin" ) );
 		} else {
 			int min_t = Integer.MAX_VALUE;
-			for (File image : inputFolder.listFiles(MMUtils.tifFilter)) {
+			for (final File image : inputFolder.listFiles(MMUtils.tifFilter)) {
 
-				int t = FloatTypeImgLoader.getTimeFromFilename(image.getName());
+				final int t = FloatTypeImgLoader.getTimeFromFilename(image.getName());
 				if (t < min_t) {
 					min_t = t;
 				}
@@ -340,9 +358,9 @@ public class MMPreprocess {
 			MAX_TIME = Integer.parseInt( cmd.getOptionValue( "tmax" ) );
 		} else {
 			int max_t = Integer.MIN_VALUE;
-			for (File image : inputFolder.listFiles(MMUtils.tifFilter)) {
+			for (final File image : inputFolder.listFiles(MMUtils.tifFilter)) {
 
-				int t = FloatTypeImgLoader.getTimeFromFilename(image.getName());
+				final int t = FloatTypeImgLoader.getTimeFromFilename(image.getName());
 				if (t > max_t) {
 					max_t = t;
 				}
@@ -374,25 +392,25 @@ public class MMPreprocess {
 		SEQUENCE_OUTPUT = cmd.hasOption("so");
 	}
 
-	private static void convertImageSequenceFolderToStack(File file) {
-		for (File folder : file.listFiles(MMUtils.folderFilter)) {
+	private static void convertImageSequenceFolderToStack(final File file) {
+		for (final File folder : file.listFiles(MMUtils.folderFilter)) {
 			ImageStack stack = null;
 
 			File firstFile = null;
 
-			File[] filelist = folder.listFiles(MMUtils.tifFilter);
+			final File[] filelist = folder.listFiles(MMUtils.tifFilter);
 			Arrays.sort(filelist);
 
 
 			int minTime = 0;
 			int maxTime = 0;
 
-			for (File image : filelist) {
+			for (final File image : filelist) {
 
 
-				ImagePlus imp = new ImagePlus(image.getAbsolutePath());
+				final ImagePlus imp = new ImagePlus(image.getAbsolutePath());
 				if (imp.getNChannels() == 1 && imp.getNSlices() == 1) {
-					int timeFromFilename = FloatTypeImgLoader.getTimeFromFilename(image.getName());
+					final int timeFromFilename = FloatTypeImgLoader.getTimeFromFilename(image.getName());
 					if (firstFile == null || stack == null) {
 						firstFile = image;
 						stack = new ImageStack(imp.getWidth(), imp.getHeight());
@@ -410,9 +428,9 @@ public class MMPreprocess {
 					stack.addSlice(imp.getProcessor());
 				}
 			}
-			ImagePlus impStack = new ImagePlus(file.getName(), stack);
-			int numFrames = maxTime - minTime + 1;
-			int numSlices = impStack.getNSlices() / NUM_CHANNELS / numFrames;
+			final ImagePlus impStack = new ImagePlus(file.getName(), stack);
+			final int numFrames = maxTime - minTime + 1;
+			final int numSlices = impStack.getNSlices() / NUM_CHANNELS / numFrames;
 
 			System.out.println("convert from stack with " + impStack.getNSlices());
 
@@ -420,7 +438,7 @@ public class MMPreprocess {
 			System.out.println("convert to hyperstack with " + numSlices + " slices");
 			System.out.println("convert to hyperstack with " + numFrames + " frames");
 
-			ImagePlus hyperStack = HyperStackConverter.toHyperStack(impStack, NUM_CHANNELS, numSlices, numFrames);
+			final ImagePlus hyperStack = HyperStackConverter.toHyperStack(impStack, NUM_CHANNELS, numSlices, numFrames);
 
 			String newFilename = firstFile.getName();
 			newFilename = newFilename.replace(String.format("_c%04d", MIN_CHANNEL_IDX), "");
@@ -429,20 +447,20 @@ public class MMPreprocess {
 
 			System.out.println("Save to: " + newFilename);
 
-			for (File image : folder.listFiles(MMUtils.tifFilter)) {
+			for (final File image : folder.listFiles(MMUtils.tifFilter)) {
 				image.delete();
 			}
 
 			for (int c = 1; c <= hyperStack.getNChannels(); c++ ) {
 				hyperStack.setC(c);
-				ImageStatistics stats = hyperStack.getStatistics(ImageStatistics.MIN_MAX);
+				final ImageStatistics stats = hyperStack.getStatistics(ImageStatistics.MIN_MAX);
 				hyperStack.setDisplayRange(stats.min, stats.max);
 			}
 			IJ.saveAsTiff(hyperStack, newFilename);
 		}
 	}
 
-	private static File convertFileToTempFolder(File file) {
+	private static File convertFileToTempFolder(final File file) {
 		// in case there is something wrong, return the file as it was. the main routine will check that and make a
 		// proper error message
 		if (!file.exists()) {
@@ -454,7 +472,7 @@ public class MMPreprocess {
 			return file;
 		}
 
-		String property = "java.io.tmpdir";
+		final String property = "java.io.tmpdir";
 		String tempDir = System.getProperty(property);
 
 		if (!tempDir.endsWith("/")) {
@@ -466,7 +484,7 @@ public class MMPreprocess {
 		// makeDir(tempDir);
 		// System.exit(0);
 
-		String dirname = "tmp";
+		final String dirname = "tmp";
 		int counter = 0;
 		File tempDirectory;
 		while ((tempDirectory = new File(tempDir + dirname + counter)).exists()) {
@@ -483,15 +501,15 @@ public class MMPreprocess {
 		new File(path).mkdirs();
 
 
-		ImagePlus imp = IJ.openImage(file.getAbsolutePath());
+		final ImagePlus imp = IJ.openImage(file.getAbsolutePath());
 
 		for (int t = 1; t <= imp.getNFrames(); t++ ) {
 			//imp.setT(t);
 			for (int c = 1; c <= imp.getNChannels(); c++ ) {
 				//imp.setC(c);
-				ImagePlus slice = new Duplicator().run(imp, c,c,1,1, t,t);
+				final ImagePlus slice = new Duplicator().run(imp, c,c,1,1, t,t);
 
-				String newLocation = path + file.getName() + "_t" + String.format("%04d", t)  + "_c" + String.format("%04d", c) + ".tif";
+				final String newLocation = path + file.getName() + "_t" + String.format("%04d", t)  + "_c" + String.format("%04d", c) + ".tif";
 				System.out.println("Saving to " + newLocation);
 				IJ.saveAsTiff(slice, newLocation);
 				new File(newLocation).deleteOnExit();
