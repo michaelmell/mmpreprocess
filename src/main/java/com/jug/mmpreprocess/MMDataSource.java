@@ -3,6 +3,7 @@
  */
 package com.jug.mmpreprocess;
 
+import com.jug.mmpreprocess.util.FloatTypeImgLoader;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,7 +41,7 @@ public class MMDataSource {
 		}
 
 		final File[] fileArray =
-				inputFolder.listFiles( new ExtensionFileFilter( extensions, ".tif and .tiff" ) );
+				inputFolder.listFiles( /*new ExtensionFileFilter( extensions, ".tif and .tiff" )*/ MMUtils.tifFilter );
 		final List< String > listOfImageFilesnames = new ArrayList< String >( fileArray.length );
 		for ( final File file : fileArray ) {
 			if ( !file.isDirectory() ) {
@@ -50,7 +51,7 @@ public class MMDataSource {
 			}
 		}
 
-		System.out.println( "Valid files found for processing: " + listOfImageFilesnames.size() );
+		System.out.println( "Valid files found for processing: " + listOfImageFilesnames.size() + " of " + fileArray.length + " (filtered by " + minTime + " < t < " + maxTime + ")");
 
 		Collections.sort( listOfImageFilesnames );
 		int i = 0;
@@ -78,10 +79,10 @@ public class MMDataSource {
 	 * @return
 	 */
 	private boolean isInDataRange( final String fn, final int minT, final int maxT ) {
-		final int start = fn.indexOf( "_t" ) + 2;
-		final String strT = fn.substring( start, start + 4 );
+		//final int start = fn.indexOf( "_t" ) + 2;
+		//final String strT = fn.substring( start, start + 4 );
 		try {
-			final int t = Integer.parseInt( strT );
+			final int t = FloatTypeImgLoader.getTimeFromFilename(fn); //Integer.parseInt( strT );
 			if ( t >= minT && t <= maxT ) { return true; }
 		} catch ( final NumberFormatException e ) {
 			throw new IllegalArgumentException( String.format(

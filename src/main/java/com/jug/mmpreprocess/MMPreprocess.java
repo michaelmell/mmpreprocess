@@ -3,7 +3,16 @@
  */
 package com.jug.mmpreprocess;
 
+import com.jug.mmpreprocess.util.FloatTypeImgLoader;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.plugin.Duplicator;
+import ij.plugin.HyperStackConverter;
+import ij.process.ImageStatistics;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.cli.BasicParser;
@@ -22,6 +31,8 @@ public class MMPreprocess {
 	public static final int EXIT_STATUS_COULDNOTLOAD = 1;
 	public static final int EXIT_STATUS_COULDNOTLOAD_AS_FLOATTYPE = 1;
 
+	public static boolean running_as_Fiji_plugin = false;
+
 	// things to come via command-line arguments
 	private static String OUTPUT_PATH = "";
 	private static int MIN_CHANNEL_IDX = 1;
@@ -38,16 +49,20 @@ public class MMPreprocess {
 	private static double INTENSITY_THRESHOLD;   // set in parseCommandLineArgs()
 	private static final int BOTTOM_PADDING = 0;
 	private static final int TOP_PADDING = 25;
-	private static final int GL_MIN_LENGTH = 100;
-	private static final double VARIANCE_THRESHOLD = 0.00001;// 0.001
-	private static final int LATERAL_OFFSET = 7;// 20 ??
-	private static final int GL_CROP_WIDTH = 45;// 100
+	private static final int GL_MIN_LENGTH = 250;
+	private static double VARIANCE_THRESHOLD = 0.001;// 0.00001; // may be modified in parseCommandLineArgs()
+	private static int LATERAL_OFFSET = 40; //10; // may be modified in parseCommandLineArgs()
+	private static int GL_CROP_WIDTH = 100; //40; // may be modified in parseCommandLineArgs()
+
+	private static boolean SEQUENCE_OUTPUT = false;
 
 	/**
 	 * @param args
 	 */
 	public static void main( final String[] args ) {
 		parseCommandLineArgs( args );
+
+		System.out.println("maxtime: " + MAX_TIME);
 
 		// assemble file-list to process
 		final MMDataSource dataSource =
@@ -110,9 +125,17 @@ public class MMPreprocess {
 			frame.dropImageData();
 		}
 
+		if (!SEQUENCE_OUTPUT) {
+			convertImageSequenceFolderToStack(outputFolder);
+		}
+
 //		new ImageJ();
 //		ImageJFunctions.show( firstFrame.getChannel( 0 ), "DEBUG" );
-		System.exit( 0 );
+		if (!running_as_Fiji_plugin) {
+			System.exit(0);
+		} else {
+			return;
+		}
 	}
 
 	/**
@@ -136,14 +159,14 @@ public class MMPreprocess {
 
 		final Option numChannelsOption =
 				new Option( "c", "channels", true, "number of channels to be loaded and analyzed." );
-		numChannelsOption.setRequired( true );
+		numChannelsOption.setRequired( false );
 
 		final Option minChannelIdxOption =
 				new Option( "cmin", "min_channel", true, "the smallest channel index (usually 0 or 1, default is 1)." );
 		minChannelIdxOption.setRequired( false );
 
 		final Option infolder = new Option( "i", "infolder", true, "folder to read data from" );
-		infolder.setRequired( false );
+		infolder.setRequired( true );
 
 		final Option outfolder =
 				new Option( "o", "outfolder", true, "folder to write preprocessed data to (equals infolder if not given)" );
@@ -157,6 +180,22 @@ public class MMPreprocess {
 				new Option( "bn", "bright_numbers", false, "use this option if the numbers below the GLs happen to be by far the brightest objects." );
 		hasBrightNumbers.setRequired( false );
 
+		final Option varianceThreshold =
+				new Option("vt", "variance_threshold", true, "variance threshold help text missing!");
+		varianceThreshold.setRequired(false);
+
+		final Option lateralOffset =
+				new Option("lo", "lateral_offset", true, "lateral offset help text missing!");
+		lateralOffset.setRequired(false);
+
+		final Option cropWidth =
+				new Option("cw", "crop_width", true, "crop width help text missing!");
+		cropWidth.setRequired(false);
+
+		final Option sequenceOutput =
+				new Option("so", "sequenceoutput", false, "use this option to output a sequence of .tif files as output.");
+
+
 		options.addOption( help );
 		options.addOption( numChannelsOption );
 		options.addOption( minChannelIdxOption );
@@ -166,6 +205,11 @@ public class MMPreprocess {
 		options.addOption( outfolder );
 		options.addOption( sigma );
 		options.addOption( hasBrightNumbers );
+		options.addOption( varianceThreshold );
+		options.addOption( lateralOffset );
+		options.addOption( cropWidth );
+		options.addOption( sequenceOutput );
+
 
 		// get the commands parsed
 		CommandLine cmd = null;
@@ -178,7 +222,11 @@ public class MMPreprocess {
 					"",
 					options,
 					"Error: " + e1.getMessage() );
-			System.exit( 0 );
+			if (!running_as_Fiji_plugin) {
+				System.exit(0);
+			} else {
+				return;
+			}
 		}
 
 		if ( cmd.hasOption( "help" ) ) {
@@ -186,54 +234,121 @@ public class MMPreprocess {
 			formatter.printHelp(
 					"... -i [in-folder] -o [out-folder] -c <num-channels> -cmin [start-channel-ids] -tmin [idx] -tmax [idx] -s [sigma] [-bn]",
 					options );
-			System.exit( 0 );
+			if (!running_as_Fiji_plugin) {
+				System.exit(0);
+			} else {
+				return;
+			}
 		}
 
 		inputFolder = null;
+		File originalInputFolder = null;
 		if ( cmd.hasOption( "i" ) ) {
 			inputFolder = new File( cmd.getOptionValue( "i" ) );
+			originalInputFolder = inputFolder;
+
+			if (!inputFolder.isDirectory()) {
+				inputFolder = convertFileToTempFolder(inputFolder);
+			}
 
 			if ( !inputFolder.isDirectory() ) {
 				System.out.println( "Error: Input folder is not a directory!" );
-				System.exit( 2 );
+				if (!running_as_Fiji_plugin) {
+					System.exit(2);
+				} else {
+					return;
+				}
 			}
 			if ( !inputFolder.canRead() ) {
 				System.out.println( "Error: Input folder cannot be read!" );
-				System.exit( 2 );
+				if (!running_as_Fiji_plugin) {
+					System.exit(2);
+				} else {
+					return;
+				}
 			}
 		}
 
 		outputFolder = null;
 		if ( !cmd.hasOption( "o" ) ) {
-			outputFolder = new File( inputFolder.getAbsolutePath() + "/output/" );
+			if (originalInputFolder.isDirectory()) {
+				outputFolder = new File(originalInputFolder.getAbsolutePath() + "/output/");
+			} else {
+				outputFolder = new File(originalInputFolder.getAbsolutePath() + "_output/");
+			}
 			OUTPUT_PATH = outputFolder.getAbsolutePath();
 		} else {
 			outputFolder = new File( cmd.getOptionValue( "o" ) );
-
+			if (! outputFolder.exists()) {
+				outputFolder.mkdirs();
+			}
 			if ( !outputFolder.isDirectory() ) {
 				System.out.println( "Error: Output folder is not a directory!" );
-				System.exit( 3 );
+				if (!running_as_Fiji_plugin) {
+					System.exit(3);
+				} else {
+					return;
+				}
 			}
 			if ( !outputFolder.canWrite() ) {
 				System.out.println( "Error: Output folder cannot be written to!" );
-				System.exit( 3 );
+				if (!running_as_Fiji_plugin) {
+					System.exit(3);
+				} else {
+					return;
+				}
 			}
 
 			OUTPUT_PATH = outputFolder.getAbsolutePath();
 		}
 
-		if ( cmd.hasOption( "cmin" ) ) {
-			MIN_CHANNEL_IDX = Integer.parseInt( cmd.getOptionValue( "cmin" ) );
+		// Determine min and max / num of channels by going through the input directory
+
+		int min_c = Integer.MAX_VALUE;
+		int max_c = Integer.MIN_VALUE;
+
+		for (File image : inputFolder.listFiles(MMUtils.tifFilter)) {
+			int c = FloatTypeImgLoader.getChannelFromFilename(image.getName());
+			if (c < min_c) {
+				min_c = c;
+			}
+			if (c > max_c) {
+				max_c = c;
+			}
 		}
-		if ( cmd.hasOption( "c" ) ) {
-			NUM_CHANNELS = Integer.parseInt( cmd.getOptionValue( "c" ) );
-		}
+		//System.out.println("min_c: " + min_c);
+		//System.out.println("max_c: " + max_c);
+		MIN_CHANNEL_IDX = min_c;
+		NUM_CHANNELS = max_c - min_c + 1;
+
 
 		if ( cmd.hasOption( "tmin" ) ) {
 			MIN_TIME = Integer.parseInt( cmd.getOptionValue( "tmin" ) );
+		} else {
+			int min_t = Integer.MAX_VALUE;
+			for (File image : inputFolder.listFiles(MMUtils.tifFilter)) {
+
+				int t = FloatTypeImgLoader.getTimeFromFilename(image.getName());
+				if (t < min_t) {
+					min_t = t;
+				}
+			}
+			MIN_TIME = min_t;
 		}
+
 		if ( cmd.hasOption( "tmax" ) ) {
 			MAX_TIME = Integer.parseInt( cmd.getOptionValue( "tmax" ) );
+		} else {
+			int max_t = Integer.MIN_VALUE;
+			for (File image : inputFolder.listFiles(MMUtils.tifFilter)) {
+
+				int t = FloatTypeImgLoader.getTimeFromFilename(image.getName());
+				if (t > max_t) {
+					max_t = t;
+				}
+			}
+			MAX_TIME = max_t;
+
 		}
 
 		if ( cmd.hasOption( "s" ) ) {
@@ -246,6 +361,143 @@ public class MMPreprocess {
 		} else {
 			INTENSITY_THRESHOLD = 0.25;
 		}
+
+		if (cmd.hasOption("vt")) {
+			VARIANCE_THRESHOLD = Double.parseDouble(cmd.getOptionValue("vt"));
+		}
+		if (cmd.hasOption("lo")) {
+			LATERAL_OFFSET = Integer.parseInt(cmd.getOptionValue("lo"));
+		}
+		if (cmd.hasOption("cw")) {
+			GL_CROP_WIDTH = Integer.parseInt(cmd.getOptionValue("cw"));
+		}
+		SEQUENCE_OUTPUT = cmd.hasOption("so");
 	}
 
+	private static void convertImageSequenceFolderToStack(File file) {
+		for (File folder : file.listFiles(MMUtils.folderFilter)) {
+			ImageStack stack = null;
+
+			File firstFile = null;
+
+			File[] filelist = folder.listFiles(MMUtils.tifFilter);
+			Arrays.sort(filelist);
+
+
+			int minTime = 0;
+			int maxTime = 0;
+
+			for (File image : filelist) {
+
+
+				ImagePlus imp = new ImagePlus(image.getAbsolutePath());
+				if (imp.getNChannels() == 1 && imp.getNSlices() == 1) {
+					int timeFromFilename = FloatTypeImgLoader.getTimeFromFilename(image.getName());
+					if (firstFile == null || stack == null) {
+						firstFile = image;
+						stack = new ImageStack(imp.getWidth(), imp.getHeight());
+
+						minTime = timeFromFilename;
+						maxTime = timeFromFilename;
+					}
+					if (minTime > timeFromFilename) {
+						minTime = timeFromFilename;
+					}
+					if (maxTime < timeFromFilename) {
+						maxTime = timeFromFilename;
+					}
+					System.out.println("packing " + image.getName() + " " + imp.getWidth() + "/" + imp.getHeight() + "/" + imp.getNChannels() + "/" + imp.getNSlices() + "/" + imp.getNFrames());
+					stack.addSlice(imp.getProcessor());
+				}
+			}
+			ImagePlus impStack = new ImagePlus(file.getName(), stack);
+			int numFrames = maxTime - minTime + 1;
+			int numSlices = impStack.getNSlices() / NUM_CHANNELS / numFrames;
+
+			System.out.println("convert from stack with " + impStack.getNSlices());
+
+			System.out.println("convert to hyperstack with " + NUM_CHANNELS + " channels");
+			System.out.println("convert to hyperstack with " + numSlices + " slices");
+			System.out.println("convert to hyperstack with " + numFrames + " frames");
+
+			ImagePlus hyperStack = HyperStackConverter.toHyperStack(impStack, NUM_CHANNELS, numSlices, numFrames);
+
+			String newFilename = firstFile.getName();
+			newFilename = newFilename.replace(String.format("_c%04d", MIN_CHANNEL_IDX), "");
+			newFilename = newFilename.replace(String.format("_t%04d", MIN_TIME), "");
+			newFilename = folder.getAbsolutePath() + "/" + newFilename;
+
+			System.out.println("Save to: " + newFilename);
+
+			for (File image : folder.listFiles(MMUtils.tifFilter)) {
+				image.delete();
+			}
+
+			for (int c = 1; c <= hyperStack.getNChannels(); c++ ) {
+				hyperStack.setC(c);
+				ImageStatistics stats = hyperStack.getStatistics(ImageStatistics.MIN_MAX);
+				hyperStack.setDisplayRange(stats.min, stats.max);
+			}
+			IJ.saveAsTiff(hyperStack, newFilename);
+		}
+	}
+
+	private static File convertFileToTempFolder(File file) {
+		// in case there is something wrong, return the file as it was. the main routine will check that and make a
+		// proper error message
+		if (!file.exists()) {
+			System.out.print("file doesn't exist");
+			return file;
+		}
+		if (!file.isFile()) {
+			System.out.print("file isn't a file");
+			return file;
+		}
+
+		String property = "java.io.tmpdir";
+		String tempDir = System.getProperty(property);
+
+		if (!tempDir.endsWith("/")) {
+			tempDir = tempDir + "/";
+		}
+
+		//System.out.println("OS current temporary directory is " + tempDir);
+		// System.out.println("input file: " + );
+		// makeDir(tempDir);
+		// System.exit(0);
+
+		String dirname = "tmp";
+		int counter = 0;
+		File tempDirectory;
+		while ((tempDirectory = new File(tempDir + dirname + counter)).exists()) {
+			counter ++;
+		}
+		tempDirectory.mkdirs();
+
+		String path = tempDirectory.getAbsolutePath();
+		if (!path.endsWith("/")) {
+			path = path + "/";
+		}
+
+		path = path + file.getName() + "/";
+		new File(path).mkdirs();
+
+
+		ImagePlus imp = IJ.openImage(file.getAbsolutePath());
+
+		for (int t = 1; t <= imp.getNFrames(); t++ ) {
+			//imp.setT(t);
+			for (int c = 1; c <= imp.getNChannels(); c++ ) {
+				//imp.setC(c);
+				ImagePlus slice = new Duplicator().run(imp, c,c,1,1, t,t);
+
+				String newLocation = path + file.getName() + "_t" + String.format("%04d", t)  + "_c" + String.format("%04d", c) + ".tif";
+				System.out.println("Saving to " + newLocation);
+				IJ.saveAsTiff(slice, newLocation);
+				new File(newLocation).deleteOnExit();
+			}
+		}
+		tempDirectory.deleteOnExit();
+		return new File(path);
+	}
 }

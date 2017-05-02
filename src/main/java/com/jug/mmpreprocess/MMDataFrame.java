@@ -12,7 +12,7 @@ import java.util.List;
 import com.jug.mmpreprocess.oldshit.GrowthLineFrame;
 import com.jug.mmpreprocess.oldshit.Loops;
 import com.jug.mmpreprocess.oldshit.VarOfRai;
-import com.jug.util.FloatTypeImgLoader;
+import com.jug.mmpreprocess.util.FloatTypeImgLoader;
 
 import ij.IJ;
 import io.scif.img.ImgIOException;
@@ -30,7 +30,6 @@ import net.imglib2.util.ValuePair;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
-
 /**
  * @author jug
  */
@@ -43,7 +42,7 @@ public class MMDataFrame {
 	private final String basisName;
 
 	private List< String > channelSourceFilenames = new ArrayList< String >();
-	private List< RandomAccessibleInterval< FloatType > > channelImages = new ArrayList<>();
+	private List< RandomAccessibleInterval< FloatType > > channelImages = new ArrayList<RandomAccessibleInterval< FloatType > >();
 	private List< CropArea > glCropAreas = null;
 
 	public MMDataFrame(
@@ -57,10 +56,10 @@ public class MMDataFrame {
 
 		sanityChecks();
 
-		final int start = channelSourceFilenames.get( 0 ).indexOf( "_t" ) + 2;
-		final String strT = channelSourceFilenames.get( 0 ).substring( start, start + 4 );
+		//final int start = channelSourceFilenames.get( 0 ).indexOf( "_t" ) + 2;
+		//final String strT = channelSourceFilenames.get( 0 ).substring( start, start + 4 );
 		try {
-			this.t = Integer.parseInt( strT );
+			this.t = FloatTypeImgLoader.getTimeFromFilename(channelSourceFilenames.get( 0 )); //Integer.parseInt( strT );
 		} catch ( final NumberFormatException e ) {
 			throw new IllegalArgumentException( String.format(
 					"ERROR\tFile list corrupt. Time could not be extracted for file %s.",
@@ -108,14 +107,14 @@ public class MMDataFrame {
 	}
 
 	public void dropImageData() {
-		channelImages = new ArrayList<>();
+		channelImages = new ArrayList<RandomAccessibleInterval< FloatType > >();
 	}
 
 	/**
 	 *
 	 */
 	public void loadChannelImages() {
-		channelImages = new ArrayList<>();
+		channelImages = new ArrayList<RandomAccessibleInterval< FloatType > >();
 
 		// normalize first channel
 		boolean normalize = true;

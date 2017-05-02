@@ -1,0 +1,4 @@
+
+
+
+mvn -Denforcer.skip package
