@@ -216,7 +216,8 @@ public class MMDataFrame {
 			final double varianceThreshold,
 			final int minLength,
 			final int topPadding,
-			final int bottomPadding ) {
+			final int bottomPadding,
+			final boolean debug ) {
 		final long left = 0, right = channelImages.get( 0 ).dimension( 0 );
 
 		final List< FloatType > points =
@@ -229,6 +230,14 @@ public class MMDataFrame {
 		for ( final FloatType dtPoint : points ) {
 			y[ i ] = dtPoint.get();
 			i++;
+		}
+
+		if ( debug ) {
+			System.out.println( "\nVariances per pixel row are:\n" );
+			for ( final double d : y ) {
+				System.out.print( String.format( "%7.5f, ", d ) );
+			}
+			System.out.println( "" );
 		}
 
 		// looking for first interval above threshold longer then given value
