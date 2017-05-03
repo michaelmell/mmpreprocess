@@ -1,4 +1,1 @@
-
-
-
 mvn -Denforcer.skip package

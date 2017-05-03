@@ -1,10 +1,9 @@
 package com.jug.mmpreprocess.fijiplugins;
 
 import com.jug.mmpreprocess.MMPreprocess;
+
 import fiji.util.gui.GenericDialogPlus;
-import ij.IJ;
 import ij.Prefs;
-import ij.gui.GenericDialog;
 import ij.plugin.PlugIn;
 
 /**
@@ -14,13 +13,13 @@ import ij.plugin.PlugIn;
 public class MMPreprocessingPlugin implements PlugIn {
 
     @Override
-    public void run(String s) {
-        String currentDir = Prefs.getDefaultDirectory();
+    public void run(final String s) {
+        final String currentDir = Prefs.getDefaultDirectory();
 
 
         // -----------------------------------------
         // plugin configuration
-        GenericDialogPlus gd = new GenericDialogPlus("MMPreprocessing Configuration");
+        final GenericDialogPlus gd = new GenericDialogPlus("MMPreprocessing Configuration");
         if (s.equals("file")) {
             gd.addFileField("Input_file", currentDir);
         } else {
@@ -31,23 +30,34 @@ public class MMPreprocessingPlugin implements PlugIn {
         gd.addNumericField("Time_points_start_with (usually 0 or 1)", 1, 0);
         gd.addMessage("Advanced parameters");
         gd.addNumericField("Variance_threshold", 0.001, 8);
-        gd.addNumericField("Lateral_offset", 40, 0);
-        gd.addNumericField("Crop_width", 100, 0);
-        gd.addCheckbox("Save results as image sequence", false);
+		gd.addNumericField( "Lateral_offset (in pixel)", 40, 0 );
+		gd.addNumericField( "Crop_width (in pixel)", 100, 0 );
+		gd.addCheckbox( "Results_as_sequence", false );
+		gd.addNumericField( "GL_min_length (in pixel)", 250, 0 );
+		gd.addNumericField( "Row_smoothing_sigma (in pixel)", 20, 1 );
+//		gd.addNumericField( "Top_padding (in pixel)", 20, 1 );
+//		gd.addNumericField( "Bottom_padding (in pixel)", 20, 1 );
+		gd.addCheckbox( "Show_debug_output", false );
+
         gd.showDialog();
         if (gd.wasCanceled()) {
             return;
         }
-        String inputFolderOrFile = gd.getNextString();
-        String outputFolder = gd.getNextString();
-        int numberOfTimePoints = (int)gd.getNextNumber();
-        int timePointStartIndex = (int)gd.getNextNumber();
-        double varianceThreshold = gd.getNextNumber();
-        int lateralOffset = (int)gd.getNextNumber();
-        int cropWidth = (int)gd.getNextNumber();
-        boolean saveResultsAsImageSequence = gd.getNextBoolean();
+        final String inputFolderOrFile = gd.getNextString();
+        final String outputFolder = gd.getNextString();
+        final int numberOfTimePoints = (int)gd.getNextNumber();
+        final int timePointStartIndex = (int)gd.getNextNumber();
+        final double varianceThreshold = gd.getNextNumber();
+        final int lateralOffset = (int)gd.getNextNumber();
+        final int cropWidth = (int)gd.getNextNumber();
+        final boolean saveResultsAsImageSequence = gd.getNextBoolean();
+		final int glMinLength = ( int ) gd.getNextNumber();
+		final double rowSmoothingSigma = gd.getNextNumber();
+//		final int topPadding = ( int ) gd.getNextNumber();
+//		final int bottomPadding = ( int ) gd.getNextNumber();
+		final boolean showDebugOutput = gd.getNextBoolean();
 
-        String[] args = {
+        final String[] args = {
                 "mmpreprocess",
                 "-i",
                 inputFolderOrFile,
@@ -63,13 +73,22 @@ public class MMPreprocessingPlugin implements PlugIn {
                 "" + lateralOffset,
                 "-cw",
                 "" + cropWidth,
-                saveResultsAsImageSequence?"-so":""
+                saveResultsAsImageSequence?"-so":"",
+                "-gl_minl",
+                "" + glMinLength,
+                "-s",
+                "" + rowSmoothingSigma,
+//                "-tp",
+//                "" + topPadding,
+//                "-bp",
+//                "" + bottomPadding,
+                showDebugOutput?"-d":""
         };
 
         // -----------------------------------------
         // for tracing
         System.out.println("mmp parameters: ");
-        for (String param : args) {
+        for (final String param : args) {
             System.out.println(" " + param);
         }
 
