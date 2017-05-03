@@ -110,8 +110,10 @@ public class MMPreprocess {
 				firstFrame.computeGrowthLaneCropAreas( LATERAL_OFFSET, GL_CROP_WIDTH, SIGMA_X, SIGMA_Y );
 
 		// debug
-		firstFrame.setGLCropAreas( glCropAreas );
-		firstFrame.saveGLCropsTo( outputFolder, true );
+		if ( DEBUG ) {
+			firstFrame.setGLCropAreas( glCropAreas );
+			firstFrame.saveGLCropsTo( outputFolder, true );
+		}
 
 		// crop GLs out of frames
 		for ( int f = 0; f < dataSource.size(); f++ ) {
