@@ -1,14 +1,15 @@
 package com.jug.mmpreprocess;
 
-import ij.IJ;
-import ij.ImagePlus;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
+
 import org.junit.Test;
 import org.python.google.common.io.Files;
 
-import static org.junit.Assert.*;
+import ij.IJ;
 
 /**
  * Created by rhaase on 3/1/17.
@@ -39,8 +40,7 @@ public class MMPreprocessTest {
                 "2",
                 "-cmin",
                 "1",
-                "-so",
-                "-d"
+				"-so"
         };
 
         // -----------------------------------------
@@ -58,7 +58,6 @@ public class MMPreprocessTest {
         outputfolder = new File(outputDir);
         assertTrue("Output folder was created ", outputfolder.exists() && outputfolder.isDirectory());
         assertEquals("Output folder contains right number of files and folders ", 26, outputfolder.listFiles(MMUtils.folderFilter).length);
-        assertEquals("Output folder contains right number of tif image files ", 52, outputfolder.listFiles(MMUtils.tifFilter).length);
 
         final File firstDatasetFolder = new File(outputDir + "/folder_GL01");
         assertTrue("Dataset folder was created ", firstDatasetFolder.exists() && firstDatasetFolder.isDirectory());
@@ -91,8 +90,7 @@ public class MMPreprocessTest {
                 "2",
                 "-cmin",
                 "1",
-                "-so",
-                "-d"
+                "-so"
         };
 
         // -----------------------------------------
@@ -110,7 +108,6 @@ public class MMPreprocessTest {
         outputfolder = new File(outputDir);
         assertTrue("Output folder was created ", outputfolder.exists() && outputfolder.isDirectory());
         assertEquals("Output folder contains right number of files and folders ", 26, outputfolder.listFiles(MMUtils.folderFilter).length);
-        assertEquals("Output folder contains right number of tif image files ", 52, outputfolder.listFiles(MMUtils.tifFilter).length);
 
         final File firstDatasetFolder = new File(outputDir + "/file.tif_GL01");
         assertTrue("Dataset folder was created ", firstDatasetFolder.exists() && firstDatasetFolder.isDirectory());
@@ -139,8 +136,7 @@ public class MMPreprocessTest {
                 inputFile,
                 "-o",
                 outputDir,
-                "-so",
-                "-d"
+                "-so"
         };
 
         // -----------------------------------------
@@ -158,7 +154,6 @@ public class MMPreprocessTest {
         outputfolder = new File(outputDir);
         assertTrue("Output folder was created ", outputfolder.exists() && outputfolder.isDirectory());
         assertEquals("Output folder contains right number of files and folders ", 26, outputfolder.listFiles(MMUtils.folderFilter).length);
-        assertEquals("Output folder contains right number of tif image files ", 52, outputfolder.listFiles(MMUtils.tifFilter).length);
 
         final File firstDatasetFolder = new File(outputDir + "/file.tif_GL01");
         assertTrue("Dataset folder was created ", firstDatasetFolder.exists() && firstDatasetFolder.isDirectory());
@@ -172,8 +167,8 @@ public class MMPreprocessTest {
     @Test
     public void testWorkingWithAFileInputStacksOutput() {
 
-        String inputFile = "src/test/resources/file.tif";
-        String outputDir = "src/test/resources/file.tif_output";
+        final String inputFile = "src/test/resources/file.tif";
+        final String outputDir = "src/test/resources/file.tif_output";
 
 
         File outputfolder = new File(outputDir);
@@ -181,18 +176,17 @@ public class MMPreprocessTest {
             MMUtils.deleteFolderRecursive(outputfolder);
         }
 
-        String[] args = {
+        final String[] args = {
                 "mmpreprocess",
                 "-i",
                 inputFile,
                 "-o",
-                outputDir,
-                "-d"
+                outputDir
         };
 
         // -----------------------------------------
         // for tracing
-        for (String param : args) {
+        for (final String param : args) {
             IJ.log("mmp params " + param);
         }
 
@@ -205,9 +199,8 @@ public class MMPreprocessTest {
         outputfolder = new File(outputDir);
         assertTrue("Output folder was created ", outputfolder.exists() && outputfolder.isDirectory());
         assertEquals("Output folder contains right number of files and folders ", 26, outputfolder.listFiles(MMUtils.folderFilter).length);
-        assertEquals("Output folder contains right number of tif image files ", 52, outputfolder.listFiles(MMUtils.tifFilter).length);
 
-        File firstDatasetFolder = new File(outputDir + "/file.tif_GL01");
+        final File firstDatasetFolder = new File(outputDir + "/file.tif_GL01");
         assertTrue("Dataset folder was created ", firstDatasetFolder.exists() && firstDatasetFolder.isDirectory());
         assertEquals("Dataset folder contains right number of files and folders ", 0, firstDatasetFolder.listFiles(MMUtils.folderFilter).length);
         assertEquals("Dataset folder contains right number of tif image files ", 1, firstDatasetFolder.listFiles(MMUtils.tifFilter).length);
@@ -237,8 +230,7 @@ public class MMPreprocessTest {
                 "-i",
                 inputFile,
                 "-o",
-                outputDir,
-                "-d"
+                outputDir
         };
 
         // -----------------------------------------
@@ -256,7 +248,6 @@ public class MMPreprocessTest {
         outputfolder = new File(outputDir);
         assertTrue("Output folder was created ", outputfolder.exists() && outputfolder.isDirectory());
         assertEquals("Output folder contains right number of files and folders ", 26, outputfolder.listFiles(MMUtils.folderFilter).length);
-        assertEquals("Output folder contains right number of tif image files ", 52, outputfolder.listFiles(MMUtils.tifFilter).length);
 
         final File firstDatasetFolder = new File(outputDir + "/file_test.tif_GL01");
         assertTrue("Dataset folder was created ", firstDatasetFolder.exists() && firstDatasetFolder.isDirectory());

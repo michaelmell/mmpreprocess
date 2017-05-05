@@ -110,13 +110,9 @@ public class MMPreprocess {
 		// compute GL crop areas
 		final List< CropArea > glCropAreas =
 				firstFrame.computeGrowthLaneCropAreas( LATERAL_OFFSET, GL_CROP_WIDTH, SIGMA_X, SIGMA_Y );
-
-		// debug
-		if ( DEBUG ) {
-			firstFrame.setGLCropAreas( glCropAreas );
-			if ( FAKE_GL_WIDTH > 0 ) firstFrame.createFakeGLChannel( IS_FLUO_PREPROCESSING, FAKE_GL_WIDTH );
-			firstFrame.saveGLCropsTo( outputFolder, true );
-		}
+//		firstFrame.setGLCropAreas( glCropAreas );
+//		if ( FAKE_GL_WIDTH > 0 ) firstFrame.createFakeGLChannel( IS_FLUO_PREPROCESSING, FAKE_GL_WIDTH );
+//		firstFrame.saveGLCropsTo( outputFolder );
 
 		// crop GLs out of frames
 		for ( int f = 0; f < dataSource.size(); f++ ) {
@@ -125,11 +121,10 @@ public class MMPreprocess {
 				frame.readImageDataIfNeeded();
 				frame.rotate( angle, BOTTOM_PADDING );
 				frame.crop( tightCropArea );
-
-				frame.setGLCropAreas( glCropAreas );
-				if ( FAKE_GL_WIDTH > 0 ) frame.createFakeGLChannel( IS_FLUO_PREPROCESSING, FAKE_GL_WIDTH );
-				frame.saveGLCropsTo( outputFolder );
 			}
+			frame.setGLCropAreas( glCropAreas );
+			if ( FAKE_GL_WIDTH > 0 ) frame.createFakeGLChannel( IS_FLUO_PREPROCESSING, FAKE_GL_WIDTH );
+			frame.saveGLCropsTo( outputFolder );
 
 			frame.dropImageData();
 		}
@@ -465,9 +460,6 @@ public class MMPreprocess {
 					System.out.println("packing " + image.getName() + " " + imp.getWidth() + "/" + imp.getHeight() + "/" + imp.getNChannels() + "/" + imp.getNSlices() + "/" + imp.getNFrames());
 					stack.addSlice(imp.getProcessor());
 				}
-			}
-			if ( stack == null ) {
-				break;
 			}
 			final ImagePlus impStack = new ImagePlus( file.getName(), stack );
 			final int numFrames = maxTime - minTime + 1;

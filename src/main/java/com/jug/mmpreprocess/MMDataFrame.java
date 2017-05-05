@@ -333,14 +333,6 @@ public class MMDataFrame {
 	 * @param outputFolder
 	 */
 	public void saveGLCropsTo( final File outputFolder ) {
-		saveGLCropsTo( outputFolder, false );
-	}
-
-	/**
-	 * @param outputFolder
-	 * @param isTestSet
-	 */
-	public void saveGLCropsTo( final File outputFolder, final boolean isTestSet ) {
 		if ( glCropAreas == null ) { throw new RuntimeException( "ERROR\tMethod saveGLCropsTo was called before GL crop areas have been set. Call setGLCropAreas first!" ); }
 		if ( !outputFolder.exists() ) {
 			if ( !outputFolder.mkdirs() ) { throw new RuntimeException( "ERROR\tUnable to create output directory " + outputFolder.getAbsolutePath() ); }
@@ -377,12 +369,11 @@ public class MMDataFrame {
 						new long[] { ca.left, ca.top },
 						new long[] { ca.right, ca.bottom } );
 
-				String path = outputFolder.getAbsolutePath();
-				if ( !isTestSet ) {
-					path = String.format( "%s/%s_GL%02d",
-									outputFolder.getAbsolutePath(),
-							basisName, gl + 1 );
-				}
+				final String path = String.format(
+						"%s/%s_GL%02d",
+						outputFolder.getAbsolutePath(),
+						basisName,
+						gl + 1 );
 
 //				System.err.println( path );
 				new File( path ).mkdirs();
@@ -446,8 +437,6 @@ public class MMDataFrame {
 					muh.setPosition( new long[] { x, y } );
 					muh.get().set( 0f );
 				}
-//			} else if ( isFluoPreprocessing ) {
-//
 			}
 		}
 	}
