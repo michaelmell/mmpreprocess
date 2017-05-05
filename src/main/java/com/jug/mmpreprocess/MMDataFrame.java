@@ -15,7 +15,11 @@ import com.jug.mmpreprocess.oldshit.VarOfRai;
 import com.jug.mmpreprocess.util.FloatTypeImgLoader;
 
 import ij.IJ;
+import ij.ImagePlus;
+import ij.plugin.Duplicator;
+import ij.process.ImageProcessor;
 import io.scif.img.ImgIOException;
+import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
@@ -395,5 +399,56 @@ public class MMDataFrame {
 
 		System.setOut( original );
 		System.out.println( " ... done!" );
+	}
+
+	/**
+	 * Duplicates channel 0 and sets all pixel values outside of a rectancle of
+	 * width <code>fakeGLWidth</code> that reaches from top to bottom of the
+	 * cropped GLs to 0.
+	 *
+	 * @param isFluoPreprocessing,
+	 *            inverts all intensities within the mentioned box (in order to
+	 *            create a faked phase contrast image).
+	 * @param fakeGLWidth,
+	 *            widht of the box that will be horizontally centered at the
+	 *            detected GL center.
+	 */
+	public void createFakeGLChannel( final boolean isFluoPreprocessing, final int fakeGLWidth ) {
+		// duplicate current channel 0
+		final ImagePlus ch0 = ImageJFunctions.wrap( channelImages.get( 0 ), "ch0" );
+		final ImagePlus duplicate = new Duplicator().run(ch0);
+
+		// invert all pixels (erased ones will stay as they are)
+		if ( isFluoPreprocessing ) {
+			final ImageProcessor ip = duplicate.getProcessor();
+			ip.invert();
+		}
+
+		final RandomAccessible<FloatType> ra = Views.extendValue(ImageJFunctions.wrap( duplicate ), new FloatType(0.0f));
+		final RandomAccessibleInterval< FloatType > rai = Views.interval( ra, channelImages.get( 0 ) );
+
+		channelImages.add( 0, rai );
+
+		// create fakeGL by removing all pixels beyond box
+		for ( long x = 0; x < rai.dimension( 0 ); x++ ) {
+			boolean eraseColumn = true;
+			for ( final CropArea ca : glCropAreas ) {
+				final long left = ca.getCenterCoordinate()-fakeGLWidth/2;
+				final long right = ca.getCenterCoordinate() + fakeGLWidth / 2 - ( 1 - fakeGLWidth % 2 );
+				if ( x >= left && x <= right ) {
+					eraseColumn = false;
+					break;
+				}
+			}
+			if ( eraseColumn ) {
+				final RandomAccess< FloatType > muh = rai.randomAccess();
+				for ( long y = 0; y < rai.dimension( 1 ); y++ ) {
+					muh.setPosition( new long[] { x, y } );
+					muh.get().set( 0f );
+				}
+//			} else if ( isFluoPreprocessing ) {
+//
+			}
+		}
 	}
 }

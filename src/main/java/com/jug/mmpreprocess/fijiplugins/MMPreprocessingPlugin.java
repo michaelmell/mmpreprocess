@@ -30,11 +30,15 @@ public class MMPreprocessingPlugin implements PlugIn {
         gd.addNumericField("Time_points_start_with (usually 0 or 1)", 1, 0);
 
 		gd.addMessage( "Full-view parameters:" );
-		gd.addCheckbox( "Auto_rotation", true );
+		gd.addCheckbox( "Auto_rotation (based on bright main channel)", true );
 		gd.addNumericField( "Variance_threshold", 0.001, 8 );
 		gd.addNumericField( "GL_min_length (in pixel)", 250, 0 );
 		gd.addNumericField( "Row_smoothing_sigma (in pixel)", 20, 1 );
 		gd.addNumericField( "Lateral_offset (in pixel)", 40, 0 );
+
+		gd.addMessage( "Fluorescence preproc? (Auto-rot off?)" );
+		gd.addCheckbox( "No_face_contrast", false );
+		gd.addNumericField( "Fake_GL_width (in pixel)", 25, 0 );
 
 		gd.addMessage( "Single-channel parameters:" );
 		gd.addNumericField( "Crop_width (in pixel)", 100, 0 );
@@ -61,6 +65,9 @@ public class MMPreprocessingPlugin implements PlugIn {
 		final double rowSmoothingSigma = gd.getNextNumber();
         final int lateralOffset = (int)gd.getNextNumber();
 
+        final boolean isFluoPreprocessing = gd.getNextBoolean();
+        final int fakeGLWidth = ( int ) gd.getNextNumber();
+
         final int cropWidth = (int)gd.getNextNumber();
 		final int topPadding = ( int ) gd.getNextNumber();
 		final int bottomPadding = ( int ) gd.getNextNumber();
@@ -78,6 +85,9 @@ public class MMPreprocessingPlugin implements PlugIn {
                 "" + timePointStartIndex,
                 "-tmax",
                 "" + (timePointStartIndex + numberOfTimePoints - 1),
+                isFluoPreprocessing?"-fluo":"",
+                "-fake_gl_width",
+                "" + fakeGLWidth,
                 "-vt",
                 "" + varianceThreshold,
                 "-gl_minl",

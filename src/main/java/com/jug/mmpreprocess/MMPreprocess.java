@@ -56,8 +56,9 @@ public class MMPreprocess {
 	private static double VARIANCE_THRESHOLD = 0.001; // may be modified in parseCommandLineArgs()
 	private static int LATERAL_OFFSET = 40;           // may be modified in parseCommandLineArgs()
 	private static int GL_CROP_WIDTH = 100;           // may be modified in parseCommandLineArgs()
-
-	private static boolean SEQUENCE_OUTPUT = false;
+	private static boolean SEQUENCE_OUTPUT = false;   // may be modified in parseCommandLineArgs()
+	private static boolean IS_FLUO_PREPROCESSING = false; // may be modified in parseCommandLineArgs()
+	private static int FAKE_GL_WIDTH = -1;            // may be modified in parseCommandLineArgs() -- negative values will cause no fake-GL to be created!
 
 	/**
 	 * @param args
@@ -113,20 +114,22 @@ public class MMPreprocess {
 		// debug
 		if ( DEBUG ) {
 			firstFrame.setGLCropAreas( glCropAreas );
+			if ( FAKE_GL_WIDTH > 0 ) firstFrame.createFakeGLChannel( IS_FLUO_PREPROCESSING, FAKE_GL_WIDTH );
 			firstFrame.saveGLCropsTo( outputFolder, true );
 		}
 
 		// crop GLs out of frames
 		for ( int f = 0; f < dataSource.size(); f++ ) {
 			final MMDataFrame frame = dataSource.getFrame( f );
-			frame.readImageDataIfNeeded();
 			if ( f > 0 ) { // first one is already modified at this point (see above)
+				frame.readImageDataIfNeeded();
 				frame.rotate( angle, BOTTOM_PADDING );
 				frame.crop( tightCropArea );
-			}
 
-			frame.setGLCropAreas( glCropAreas );
-			frame.saveGLCropsTo( outputFolder );
+				frame.setGLCropAreas( glCropAreas );
+				if ( FAKE_GL_WIDTH > 0 ) frame.createFakeGLChannel( IS_FLUO_PREPROCESSING, FAKE_GL_WIDTH );
+				frame.saveGLCropsTo( outputFolder );
+			}
 
 			frame.dropImageData();
 		}
@@ -218,6 +221,11 @@ public class MMPreprocess {
 		final Option debugSwitch =
 				new Option( "d", "debug", false, "print additional debug output." );
 
+		final Option isFluo =
+				new Option( "fluo", "is_fluo_preprocessing", false, "creates 'fake' phase contrast channel from fluor. channel 0." );
+		final Option fakeGLWidth =
+				new Option( "fglw", "fake_gl_width", true, "width of 'fake' GL to be made (in pixels)." );
+
 		options.addOption( help );
 		options.addOption( numChannelsOption );
 		options.addOption( minChannelIdxOption );
@@ -236,7 +244,8 @@ public class MMPreprocess {
 		options.addOption( glMinLength );
 		options.addOption( noAutoRotation );
 		options.addOption( debugSwitch );
-
+		options.addOption( isFluo );
+		options.addOption( fakeGLWidth );
 
 		// get the commands parsed
 		CommandLine cmd = null;
@@ -408,6 +417,14 @@ public class MMPreprocess {
 		if ( cmd.hasOption( "bp" ) ) {
 			BOTTOM_PADDING = Integer.parseInt( cmd.getOptionValue( "bp" ) );
 		}
+
+		// Parameters for fake phase contrast channel generation
+		IS_FLUO_PREPROCESSING = cmd.hasOption( "fluo" );
+
+		if ( cmd.hasOption( "fake_gl_width" ) ) {
+			FAKE_GL_WIDTH = Integer.parseInt( cmd.getOptionValue( "fglw" ) );
+		}
+
 		SEQUENCE_OUTPUT = cmd.hasOption("so");
 		DEBUG = cmd.hasOption( "d" );
 		AUTO_ROTATE = !cmd.hasOption( "norotation" );
