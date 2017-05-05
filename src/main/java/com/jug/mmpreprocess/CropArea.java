@@ -13,5 +13,9 @@ public class CropArea {
 		this.bottom = bottom;
 		this.right = right;
 	}
+
+	public long getCenterCoordinate() {
+		return ( right + left ) / 2;
+	}
 }
 
