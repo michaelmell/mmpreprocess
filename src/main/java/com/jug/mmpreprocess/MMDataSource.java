@@ -3,13 +3,12 @@
  */
 package com.jug.mmpreprocess;
 
-import com.jug.mmpreprocess.util.FloatTypeImgLoader;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import weka.gui.ExtensionFileFilter;
+import com.jug.mmpreprocess.util.FloatTypeImgLoader;
 
 
 /**
@@ -51,7 +50,16 @@ public class MMDataSource {
 			}
 		}
 
-		System.out.println( "Valid files found for processing: " + listOfImageFilesnames.size() + " of " + fileArray.length + " (filtered by " + minTime + " < t < " + maxTime + ")");
+		if ( fileArray.length == 0 ) {
+			System.err.println(
+					"Valid files found for processing: " + listOfImageFilesnames
+							.size() + " of " + fileArray.length + " (filtered by " + minTime + " < t < " + maxTime + ")" );
+			System.exit( 1 );
+		} else {
+			System.out.println(
+					"Valid files found for processing: " + listOfImageFilesnames
+							.size() + " of " + fileArray.length + " (filtered by " + minTime + " < t < " + maxTime + ")" );
+		}
 
 		Collections.sort( listOfImageFilesnames );
 		int i = 0;

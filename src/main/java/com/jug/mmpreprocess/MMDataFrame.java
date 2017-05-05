@@ -272,7 +272,7 @@ public class MMDataFrame {
 				curLen = 0;
 			}
 		}
-		System.out.println( "WARNING\tNo crop area of sufficient height was found. Entire frames will be used -- this is likely to fail later on!" );
+		System.err.println( "WARNING\tNo crop area of sufficient height was found. Entire frames will be used -- this is likely to fail later on!" );
 		return new CropArea( 0, left, channelImages.get( 0 ).dimension( 1 ), right );
 	}
 
@@ -339,7 +339,7 @@ public class MMDataFrame {
 		}
 		if ( !outputFolder.canWrite() ) { throw new RuntimeException( "ERROR\tOutput directory cannot be written to. --> " + outputFolder.getAbsolutePath() ); }
 		if ( glCropAreas.size() == 0 ) {
-			System.out.println( "WARNING\tRequest to save GL crops with 0 detected GLs." );
+			System.err.println( "WARNING\tRequest to save GL crops with 0 detected GLs." );
 		}
 
 		System.out.print( "\nWriting GL crops into " + outputFolder.getAbsolutePath() );
