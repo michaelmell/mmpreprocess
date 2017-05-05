@@ -47,7 +47,8 @@ public class MMPreprocess {
 	private static File outputFolder;
 
 	// global parameters
-	private static boolean DEBUG = false;
+	private static boolean DEBUG = false;             // may be modified in parseCommandLineArgs()
+	private static boolean AUTO_ROTATE = true;        // may be modified in parseCommandLineArgs()
 	private static double INTENSITY_THRESHOLD;        // set in parseCommandLineArgs()
 	private static int BOTTOM_PADDING = 0;            // may be modified in parseCommandLineArgs()
 	private static int TOP_PADDING = 25;              // may be modified in parseCommandLineArgs()
@@ -70,26 +71,26 @@ public class MMPreprocess {
 		final MMDataSource dataSource =
 				new MMDataSource( inputFolder, NUM_CHANNELS, MIN_CHANNEL_IDX, MIN_TIME, MAX_TIME );
 
-		// compute tilt angle
+		double angle = 0;
 		final MMDataFrame firstFrame = dataSource.getFrame( 0 );
 		final MMDataFrame lastFrame = dataSource.getFrame( dataSource.size() - 1 );
-		final double angle1 = MMUtils.computeTiltAngle( firstFrame, INTENSITY_THRESHOLD );
-		final double angle2 = MMUtils.computeTiltAngle( lastFrame, INTENSITY_THRESHOLD );
-		System.out.println( "\n" );
-		System.out.println( "Angle for  1st frame: " + angle1 );
-		System.out.println( "Angle for last frame: " + angle2 );
-		System.out.println( "" );
+		firstFrame.getChannel( 0 );
+		lastFrame.getChannel( 0 );
+		if ( AUTO_ROTATE ) {
+			// compute tilt angles
+			final double angle1 = MMUtils.computeTiltAngle( firstFrame, INTENSITY_THRESHOLD );
+			final double angle2 = MMUtils.computeTiltAngle( lastFrame, INTENSITY_THRESHOLD );
+			System.out.println( "\n" );
+			System.out.println( "Angle for  1st frame: " + angle1 );
+			System.out.println( "Angle for last frame: " + angle2 );
+			System.out.println( "" );
 
-		// safety net
-		double angle = ( angle1 + angle2 ) / 2;
-		if ( Math.abs( angle1 - angle2 ) > 0.5 ) {
-//			if ( angle1 != 0 ) {
-			System.out.println( "Angles are very different -- use only angle of 1st frame!" );
-			angle = angle1;
-//			} else {
-//				System.out.println( "Angles are very different -- use only angle of lat frame (because he one of the first frame is '0.0'!" );
-//				angle = angle2;
-//			}
+			// safety net
+			angle = ( angle1 + angle2 ) / 2;
+			if ( Math.abs( angle1 - angle2 ) > 0.5 ) {
+				System.out.println( "Angles are very different -- use only angle of 1st frame!" );
+				angle = angle1;
+			}
 		}
 
 		// rotate and compute crop ROI
@@ -197,14 +198,25 @@ public class MMPreprocess {
 				new Option( "cw", "crop_width", true, "the widht of the cut images (centered on identified growth channel center lines)." );
 		cropWidth.setRequired(false);
 
+		final Option topPadding =
+				new Option( "tp", "top_padding", true, "padding on top of final cut images (in pixels)." );
+		cropWidth.setRequired( false );
+
+		final Option bottomPadding =
+				new Option( "bp", "bottom_padding", true, "padding at the bottom of final cut images (in pixels)." );
+		cropWidth.setRequired( false );
+
 		final Option sequenceOutput =
 				new Option("so", "sequenceoutput", false, "use this option to output a sequence of .tif files as output.");
 
 		final Option glMinLength =
 				new Option( "gl_minl", "gl_min_length", true, "min length of the grwoth channels in this image (longer avoids erroneous cropping)." );
 
+		final Option noAutoRotation =
+				new Option( "norotation", "no_auto_rotation", false, "no automatically determined rotation will be performed." );
+
 		final Option debugSwitch =
-				new Option( "d", "debug", false, "print additional debug output when used." );
+				new Option( "d", "debug", false, "print additional debug output." );
 
 		options.addOption( help );
 		options.addOption( numChannelsOption );
@@ -218,8 +230,11 @@ public class MMPreprocess {
 		options.addOption( varianceThreshold );
 		options.addOption( lateralOffset );
 		options.addOption( cropWidth );
+		options.addOption( topPadding );
+		options.addOption( bottomPadding );
 		options.addOption( sequenceOutput );
 		options.addOption( glMinLength );
+		options.addOption( noAutoRotation );
 		options.addOption( debugSwitch );
 
 
@@ -318,10 +333,6 @@ public class MMPreprocess {
 			GL_MIN_LENGTH = Integer.parseInt( cmd.getOptionValue( "gl_minl" ) );
 		}
 
-		if ( cmd.hasOption( "d" ) ) {
-			DEBUG = true;
-		}
-
 		// Determine min and max / num of channels by going through the input directory
 
 		int min_c = Integer.MAX_VALUE;
@@ -391,7 +402,15 @@ public class MMPreprocess {
 		if (cmd.hasOption("cw")) {
 			GL_CROP_WIDTH = Integer.parseInt(cmd.getOptionValue("cw"));
 		}
+		if ( cmd.hasOption( "tp" ) ) {
+			TOP_PADDING = Integer.parseInt( cmd.getOptionValue( "tp" ) );
+		}
+		if ( cmd.hasOption( "bp" ) ) {
+			BOTTOM_PADDING = Integer.parseInt( cmd.getOptionValue( "bp" ) );
+		}
 		SEQUENCE_OUTPUT = cmd.hasOption("so");
+		DEBUG = cmd.hasOption( "d" );
+		AUTO_ROTATE = !cmd.hasOption( "norotation" );
 	}
 
 	private static void convertImageSequenceFolderToStack(final File file) {
@@ -430,35 +449,38 @@ public class MMPreprocess {
 					stack.addSlice(imp.getProcessor());
 				}
 			}
-			final ImagePlus impStack = new ImagePlus(file.getName(), stack);
+			if ( stack == null ) {
+				break;
+			}
+			final ImagePlus impStack = new ImagePlus( file.getName(), stack );
 			final int numFrames = maxTime - minTime + 1;
 			final int numSlices = impStack.getNSlices() / NUM_CHANNELS / numFrames;
 
-			System.out.println("convert from stack with " + impStack.getNSlices());
+			System.out.println( "convert from stack with " + impStack.getNSlices() );
 
-			System.out.println("convert to hyperstack with " + NUM_CHANNELS + " channels");
-			System.out.println("convert to hyperstack with " + numSlices + " slices");
-			System.out.println("convert to hyperstack with " + numFrames + " frames");
+			System.out.println( "convert to hyperstack with " + NUM_CHANNELS + " channels" );
+			System.out.println( "convert to hyperstack with " + numSlices + " slices" );
+			System.out.println( "convert to hyperstack with " + numFrames + " frames" );
 
-			final ImagePlus hyperStack = HyperStackConverter.toHyperStack(impStack, NUM_CHANNELS, numSlices, numFrames);
+			final ImagePlus hyperStack = HyperStackConverter.toHyperStack( impStack, NUM_CHANNELS, numSlices, numFrames );
 
 			String newFilename = firstFile.getName();
-			newFilename = newFilename.replace(String.format("_c%04d", MIN_CHANNEL_IDX), "");
-			newFilename = newFilename.replace(String.format("_t%04d", MIN_TIME), "");
+			newFilename = newFilename.replace( String.format( "_c%04d", MIN_CHANNEL_IDX ), "" );
+			newFilename = newFilename.replace( String.format( "_t%04d", MIN_TIME ), "" );
 			newFilename = folder.getAbsolutePath() + "/" + newFilename;
 
-			System.out.println("Save to: " + newFilename);
+			System.out.println( "Save to: " + newFilename );
 
-			for (final File image : folder.listFiles(MMUtils.tifFilter)) {
+			for ( final File image : folder.listFiles( MMUtils.tifFilter ) ) {
 				image.delete();
 			}
 
-			for (int c = 1; c <= hyperStack.getNChannels(); c++ ) {
-				hyperStack.setC(c);
-				final ImageStatistics stats = hyperStack.getStatistics(ImageStatistics.MIN_MAX);
-				hyperStack.setDisplayRange(stats.min, stats.max);
+			for ( int c = 1; c <= hyperStack.getNChannels(); c++ ) {
+				hyperStack.setC( c );
+				final ImageStatistics stats = hyperStack.getStatistics( ImageStatistics.MIN_MAX );
+				hyperStack.setDisplayRange( stats.min, stats.max );
 			}
-			IJ.saveAsTiff(hyperStack, newFilename);
+			IJ.saveAsTiff( hyperStack, newFilename );
 		}
 	}
 

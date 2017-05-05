@@ -28,33 +28,44 @@ public class MMPreprocessingPlugin implements PlugIn {
         gd.addDirectoryField("Output_folder", currentDir);
         gd.addNumericField("Number_of_Time_points (enter -1 to process all)", -1, 0);
         gd.addNumericField("Time_points_start_with (usually 0 or 1)", 1, 0);
-        gd.addMessage("Advanced parameters");
-        gd.addNumericField("Variance_threshold", 0.001, 8);
-		gd.addNumericField( "Lateral_offset (in pixel)", 40, 0 );
-		gd.addNumericField( "Crop_width (in pixel)", 100, 0 );
-		gd.addCheckbox( "Results_as_sequence", false );
+
+		gd.addMessage( "Full-view parameters:" );
+		gd.addCheckbox( "Auto_rotation", true );
+		gd.addNumericField( "Variance_threshold", 0.001, 8 );
 		gd.addNumericField( "GL_min_length (in pixel)", 250, 0 );
 		gd.addNumericField( "Row_smoothing_sigma (in pixel)", 20, 1 );
-//		gd.addNumericField( "Top_padding (in pixel)", 20, 1 );
-//		gd.addNumericField( "Bottom_padding (in pixel)", 20, 1 );
+		gd.addNumericField( "Lateral_offset (in pixel)", 40, 0 );
+
+		gd.addMessage( "Single-channel parameters:" );
+		gd.addNumericField( "Crop_width (in pixel)", 100, 0 );
+		gd.addNumericField( "Top_padding (in pixel)", 20, 1 );
+		gd.addNumericField( "Bottom_padding (in pixel)", 20, 1 );
+
+		gd.addMessage( "Output related parameters:" );
+		gd.addCheckbox( "Results_as_sequence", false );
 		gd.addCheckbox( "Show_debug_output", false );
 
         gd.showDialog();
         if (gd.wasCanceled()) {
             return;
         }
+
         final String inputFolderOrFile = gd.getNextString();
         final String outputFolder = gd.getNextString();
         final int numberOfTimePoints = (int)gd.getNextNumber();
         final int timePointStartIndex = (int)gd.getNextNumber();
+
+		final boolean doAutoRotation = gd.getNextBoolean();
         final double varianceThreshold = gd.getNextNumber();
-        final int lateralOffset = (int)gd.getNextNumber();
-        final int cropWidth = (int)gd.getNextNumber();
-        final boolean saveResultsAsImageSequence = gd.getNextBoolean();
 		final int glMinLength = ( int ) gd.getNextNumber();
 		final double rowSmoothingSigma = gd.getNextNumber();
-//		final int topPadding = ( int ) gd.getNextNumber();
-//		final int bottomPadding = ( int ) gd.getNextNumber();
+        final int lateralOffset = (int)gd.getNextNumber();
+
+        final int cropWidth = (int)gd.getNextNumber();
+		final int topPadding = ( int ) gd.getNextNumber();
+		final int bottomPadding = ( int ) gd.getNextNumber();
+
+		final boolean saveResultsAsImageSequence = gd.getNextBoolean();
 		final boolean showDebugOutput = gd.getNextBoolean();
 
         final String[] args = {
@@ -69,19 +80,20 @@ public class MMPreprocessingPlugin implements PlugIn {
                 "" + (timePointStartIndex + numberOfTimePoints - 1),
                 "-vt",
                 "" + varianceThreshold,
+                "-gl_minl",
+                "" + glMinLength,
                 "-lo",
                 "" + lateralOffset,
                 "-cw",
                 "" + cropWidth,
                 saveResultsAsImageSequence?"-so":"",
-                "-gl_minl",
-                "" + glMinLength,
                 "-s",
                 "" + rowSmoothingSigma,
-//                "-tp",
-//                "" + topPadding,
-//                "-bp",
-//                "" + bottomPadding,
+                "-tp",
+                "" + topPadding,
+                "-bp",
+                "" + bottomPadding,
+                doAutoRotation?"":"-norotation",
                 showDebugOutput?"-d":""
         };
 
