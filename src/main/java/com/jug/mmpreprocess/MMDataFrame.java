@@ -415,7 +415,7 @@ public class MMDataFrame {
 			ip.invert();
 		}
 
-		final RandomAccessible<FloatType> ra = Views.extendValue(ImageJFunctions.wrap( duplicate ), new FloatType(0.0f));
+		final RandomAccessible<FloatType> ra = Views.extendValue(ImageJFunctions.wrapFloat( duplicate ), new FloatType(0.0f));
 		final RandomAccessibleInterval< FloatType > rai = Views.interval( ra, channelImages.get( 0 ) );
 
 		channelImages.add( 0, rai );
