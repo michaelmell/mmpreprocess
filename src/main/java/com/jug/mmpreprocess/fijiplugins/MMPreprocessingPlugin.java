@@ -37,7 +37,7 @@ public class MMPreprocessingPlugin implements PlugIn {
 		gd.addNumericField( "Lateral_offset (in pixel)", 40, 0 );
 
 		gd.addMessage( "Fluorescence preproc? (Auto-rot off?)" );
-		gd.addCheckbox( "No_face_contrast", false );
+		gd.addCheckbox( "No_phase_contrast", false );
 		gd.addNumericField( "Fake_GL_width (in pixel)", -1, 0 );
 
 		gd.addMessage( "Single-channel parameters:" );
