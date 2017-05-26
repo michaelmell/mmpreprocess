@@ -435,7 +435,7 @@ public class MMDataFrame {
 				final RandomAccess< FloatType > muh = rai.randomAccess();
 				for ( long y = 0; y < rai.dimension( 1 ); y++ ) {
 					muh.setPosition( new long[] { x, y } );
-					muh.get().set( 0f );
+					muh.get().set( 0.7f );
 				}
 			}
 		}
