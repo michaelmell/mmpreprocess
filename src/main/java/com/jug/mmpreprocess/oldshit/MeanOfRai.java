@@ -1,5 +1,11 @@
 package com.jug.mmpreprocess.oldshit;
 
+import org.scijava.ItemIO;
+import org.scijava.plugin.Parameter;
+import org.scijava.plugin.Plugin;
+
+import net.imagej.ops.AbstractOp;
+import net.imagej.ops.Op;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.view.Views;
@@ -8,13 +14,15 @@ import net.imglib2.view.Views;
  * @author jug
  *
  */
-public class MeanOfRai<T extends NumericType< T >> implements
-	OldUnaryOutputOperation<RandomAccessibleInterval<T>, T> {
+@Plugin(type = Op.class, name = "mean of rai")
+public class MeanOfRai<T extends NumericType< T >> extends AbstractOp {
+	
+	@Parameter
+	private RandomAccessibleInterval<T> input;
 
-    /**
-     * @see net.imglib2.ops.operation.UnaryOperation#compute(java.lang.Object, java.lang.Object)
-     */
-    @Override
+	@Parameter(type = ItemIO.OUTPUT)
+	private T output;
+	
     public T compute(RandomAccessibleInterval<T> input, T output) {
 	output.setZero();
 	T numEl = output.createVariable();
@@ -27,30 +35,15 @@ public class MeanOfRai<T extends NumericType< T >> implements
 	return output;
     }
 
-    /**
-     * @see net.imglib2.ops.operation.UnaryOutputOperation#createEmptyOutput(java.lang.Object)
-     */
-    @Override
     public T createEmptyOutput(RandomAccessibleInterval<T> in) {
 	return in.randomAccess().get().createVariable();
     }
 
-    /**
-     * @see net.imglib2.ops.operation.UnaryOutputOperation#compute(java.lang.Object)
-     */
     @Override
-    public T compute(RandomAccessibleInterval<T> in) {
-	T ret = createEmptyOutput(in);
-	ret = compute(in, ret);
-	return ret;
+   	public void run() {
+	T ret = createEmptyOutput(input);
+	ret = compute(input, ret);
+	output = ret;
     }
 
-    /**
-     * @see net.imglib2.ops.operation.UnaryOutputOperation#copy()
-     */
-    @Override
-    public OldUnaryOutputOperation<RandomAccessibleInterval<T>, T> copy() {
-	// TODO Auto-generated method stub
-	return null;
-    }
 }

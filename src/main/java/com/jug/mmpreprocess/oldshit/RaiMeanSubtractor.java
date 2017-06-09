@@ -1,6 +1,10 @@
 package com.jug.mmpreprocess.oldshit;
 
 
+import org.scijava.ItemIO;
+import org.scijava.plugin.Parameter;
+
+import net.imagej.ops.AbstractOp;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
@@ -10,49 +14,35 @@ import net.imglib2.view.Views;
  * @author jug
  *
  */
-public class RaiMeanSubtractor<T extends NumericType<T> & NativeType<T> > implements
-OldUnaryOutputOperation< RandomAccessibleInterval<T>, RandomAccessibleInterval<T> > {
+public class RaiMeanSubtractor<T extends NumericType<T> & NativeType<T> > extends AbstractOp {
+	
+	@Parameter
+	private RandomAccessibleInterval<T> input;
 
-        /**
-         * @see net.imglib2.ops.operation.UnaryOperation#compute(java.lang.Object, java.lang.Object)
-         */
-        @Override
-        public RandomAccessibleInterval<T> compute(
-                        RandomAccessibleInterval<T> input,
-                        RandomAccessibleInterval<T> output) {
-                T mean = new MeanOfRai<T>().compute(input);
-                DataMover.copy(input, output);
+	@Parameter(type = ItemIO.OUTPUT)
+	private RandomAccessibleInterval<T> output;
 
-                for (T pixel : Views.iterable(output)) {
-                        pixel.sub(mean);
-                }
-                return output;
-        }
+    public RandomAccessibleInterval<T> compute(
+                    RandomAccessibleInterval<T> input,
+                    RandomAccessibleInterval<T> output) {
+            T mean = new MeanOfRai<T>().compute(input);
+            DataMover.copy(input, output);
 
-        /**
-         * @see net.imglib2.ops.operation.UnaryOutputOperation#createEmptyOutput(java.lang.Object)
-         */
-        @Override
-        public RandomAccessibleInterval<T> createEmptyOutput(
-                        RandomAccessibleInterval<T> in) {
-                return DataMover.createEmptyArrayImgLike(in, in.randomAccess().get()); 
-        }
+            for (T pixel : Views.iterable(output)) {
+                    pixel.sub(mean);
+            }
+            return output;
+    }
 
-        /**
-         * @see net.imglib2.ops.operation.UnaryOutputOperation#compute(java.lang.Object)
-         */
-        @Override
-        public RandomAccessibleInterval<T> compute(RandomAccessibleInterval<T> in) {
-                return compute( in, createEmptyOutput(in) );
-        }
+    public RandomAccessibleInterval<T> createEmptyOutput(
+                    RandomAccessibleInterval<T> in) {
+            return DataMover.createEmptyArrayImgLike(in, in.randomAccess().get()); 
+    }
 
-        /**
-         * @see net.imglib2.ops.operation.UnaryOutputOperation#copy()
-         */
-        @Override
-        public OldUnaryOutputOperation<RandomAccessibleInterval<T>, RandomAccessibleInterval<T>> copy() {
-                return new RaiMeanSubtractor<T>();
-        }
+    @Override
+    public void run() {
+        output = compute( input, createEmptyOutput(input) );
+    }
 
 
 }
