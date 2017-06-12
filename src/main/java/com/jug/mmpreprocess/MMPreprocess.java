@@ -461,11 +461,15 @@ public class MMPreprocess {
 					stack.addSlice(imp.getProcessor());
 				}
 			}
+			if ( stack == null ) {
+				System.err.println( "Warning: stack '" + file.getName() + "' could not be saved (was null)." );
+				continue;
+			}
 			final ImagePlus impStack = new ImagePlus( file.getName(), stack );
 			final int numFrames = maxTime - minTime + 1;
 			final int numSlices = impStack.getNSlices() / NUM_CHANNELS / numFrames;
 
-			System.out.println( "convert from stack with " + impStack.getNSlices() );
+			System.out.println( "convert from stack with " + impStack.getNSlices() + " slices" );
 
 			System.out.println( "convert to hyperstack with " + NUM_CHANNELS + " channels" );
 			System.out.println( "convert to hyperstack with " + numSlices + " slices" );
