@@ -1,3 +1,6 @@
+/**
+ * 
+ */
 package com.jug.mmpreprocess.oldshit;
 
 import org.scijava.ItemIO;
@@ -22,8 +25,11 @@ public class MeanOfRai<T extends NumericType< T >> extends AbstractOp {
 
 	@Parameter(type = ItemIO.OUTPUT)
 	private T output;
-	
-    public T compute(RandomAccessibleInterval<T> input, T output) {
+
+    @Override
+    public void run() {
+	output = createEmptyOutput(input);
+
 	output.setZero();
 	T numEl = output.createVariable();
 	T one   = output.createVariable(); one.setOne();
@@ -32,18 +38,10 @@ public class MeanOfRai<T extends NumericType< T >> extends AbstractOp {
 	    numEl.add(one);
 	}
 	output.div(numEl);
-	return output;
     }
 
     public T createEmptyOutput(RandomAccessibleInterval<T> in) {
 	return in.randomAccess().get().createVariable();
-    }
-
-    @Override
-   	public void run() {
-	T ret = createEmptyOutput(input);
-	ret = compute(input, ret);
-	output = ret;
     }
 
 }

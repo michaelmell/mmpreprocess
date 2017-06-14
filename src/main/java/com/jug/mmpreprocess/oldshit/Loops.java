@@ -3,6 +3,8 @@ package com.jug.mmpreprocess.oldshit;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.imagej.ImageJ;
+import net.imagej.ops.Op;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.Type;
 import net.imglib2.view.Views;
@@ -24,12 +26,14 @@ public class Loops<IMG_T extends Type< IMG_T >, INNER_RET_T> {
      */
     public List<INNER_RET_T> forEachHyperslice(
 	    RandomAccessibleInterval<IMG_T> rai, int d, 
-	    OldUnaryOutputOperation<RandomAccessibleInterval<IMG_T>, INNER_RET_T> op) {
+	    String op) {
+    	
+	final ImageJ ij = new ImageJ();
 	
 	ArrayList<INNER_RET_T> ret = new ArrayList<INNER_RET_T>((int)rai.dimension(d));
 	
 	for (long i=0; i<rai.dimension(d); i++) {
-	    INNER_RET_T r = op.compute(Views.hyperSlice(rai, d, i));
+		INNER_RET_T r = (INNER_RET_T) ij.op().run(op, Views.hyperSlice(rai, d, i));
 	    ret.add(r);
 	}
 	
@@ -50,9 +54,11 @@ public class Loops<IMG_T extends Type< IMG_T >, INNER_RET_T> {
      */
     public List<INNER_RET_T> forEachIntervalSlice(
 	    RandomAccessibleInterval<IMG_T> rai, int d, 
-	    OldUnaryOutputOperation<RandomAccessibleInterval<IMG_T>, INNER_RET_T> op) {
+	    Op op) {
 	
 	ArrayList<INNER_RET_T> ret = new ArrayList<INNER_RET_T>((int)rai.dimension(d));
+	
+	final ImageJ ij = new ImageJ();
 	
 	final int n = rai.numDimensions();
 	long[] min = new long[n];
@@ -62,7 +68,7 @@ public class Loops<IMG_T extends Type< IMG_T >, INNER_RET_T> {
 	for (long i=0; i<rai.dimension(d); i++) {
 	    min[ d ] = i;
 	    max[ d ] = i;
-	    INNER_RET_T r = op.compute(Views.interval(rai, min, max));
+	    INNER_RET_T r = (INNER_RET_T) ij.op().run(op, Views.interval(rai, min, max));
 	    ret.add(r);
 	}
 	
