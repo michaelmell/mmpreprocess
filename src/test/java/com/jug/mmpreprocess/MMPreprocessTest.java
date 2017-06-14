@@ -10,12 +10,16 @@ import org.junit.Test;
 import org.python.google.common.io.Files;
 
 import ij.IJ;
+import net.imagej.patcher.LegacyInjector;
 
 /**
  * Created by rhaase on 3/1/17.
  */
 public class MMPreprocessTest {
 
+	static {
+		LegacyInjector.preinit();
+	}
 
 
     @Test

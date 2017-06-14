@@ -228,7 +228,7 @@ public class MMDataFrame {
 				new Loops< FloatType, FloatType >().forEachHyperslice(
 						channelImages.get( 0 ),
 						1,
-						new VarOfRai< FloatType >() );
+						"var of rai");
 		final double[] y = new double[ points.size() ];
 		int i = 0;
 		for ( final FloatType dtPoint : points ) {

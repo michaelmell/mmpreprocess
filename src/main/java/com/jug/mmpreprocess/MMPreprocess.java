@@ -23,11 +23,17 @@ import ij.ImageStack;
 import ij.plugin.Duplicator;
 import ij.plugin.HyperStackConverter;
 import ij.process.ImageStatistics;
+import net.imagej.patcher.LegacyInjector;
 
 /**
  * @author jug
  */
 public class MMPreprocess {
+	
+	static {
+		LegacyInjector.preinit();
+	}
+
 
 	public static final int EXIT_STATUS_COULDNOTLOAD = 1;
 	public static final int EXIT_STATUS_COULDNOTLOAD_AS_FLOATTYPE = 1;
