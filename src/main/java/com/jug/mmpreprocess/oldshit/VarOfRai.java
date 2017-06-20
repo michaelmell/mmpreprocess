@@ -19,7 +19,7 @@ import net.imglib2.type.numeric.NumericType;
  * @author jug
  *
  */
-@Plugin(type = Op.class, name = "var of rai")
+@Plugin(type = Op.class, name = "var of rai", priority = 1.0)
 public class VarOfRai<T extends NumericType<T> & NativeType<T> > extends AbstractOp {
 	
 	@Parameter

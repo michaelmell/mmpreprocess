@@ -52,7 +52,7 @@ public class FindLocalMaxima<IMG_T extends Type< IMG_T > & Comparable< IMG_T >> 
 	 */
 	@Override
 	public void run() {
-		output.clear();
+		
 		output = createEmptyOutput( input );
 
 		// Credits to Example 4b @ http://imglib2.net/ (Mr. Preibisch and Mr. Pietzsch)
