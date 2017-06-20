@@ -14,7 +14,7 @@
  
 	<groupId>com.jug</groupId>
 	<artifactId>MMPreprocess_</artifactId> 
-	<version>1.1-SNAPSHOT</version>
+	<version>1.2-SNAPSHOT</version>
 
 	<name>MotherMachine Preprocessing</name>
 	<description> Standalone and fast preprocessing for MotherMachine datasets.</description>
@@ -63,42 +63,6 @@
 		</dependency>
 	</dependencies>
 
-	<build>
-		<resources>
-			<resource>
-				<directory>${basedir}/src/main/resources</directory>
-			</resource>
-			<resource>
-				<directory>${project.build.sourceDirectory}</directory>
-			</resource>
-		</resources>
-		<testResources>
-			<testResource>
-				<directory>${basedir}/src/test/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>${project.build.testSourceDirectory}</directory>
-			</testResource>
-		</testResources>
-		<!--<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<goals>
-							<goal>java</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<mainClass>MMPreproces</mainClass>
-				</configuration>
-			</plugin>
-		</plugins>-->
-
-	</build>
-
 	<developers>
 		<developer>
 			<id>jug</id>
@@ -130,7 +94,6 @@
 		</mailingList>
 	</mailingLists>
 	
-	<!-- NB: for project parent -->
 	<repositories>
 		<repository>
 			<id>imagej.releases</id>
