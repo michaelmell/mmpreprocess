@@ -7,6 +7,7 @@ import net.imagej.ImageJ;
 import net.imagej.ops.Op;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.Type;
+import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
 /**
@@ -19,21 +20,21 @@ public class Loops<IMG_T extends Type< IMG_T >, INNER_RET_T> {
      *  given UnaryOperation.
      * @param rai - <code>RandomAccessibleInterval</code> to be hypersliced.
      * @param d - dimension along which the hyperslices will be created.
-     * @param op - the UnaryOperation<IterableInterval<IMG_T>,INNER_RET_T> instance
+     * @param opClass - the UnaryOperation<IterableInterval<IMG_T>,INNER_RET_T> instance
      * to be called for each hyperslice. Results will be added to List and finally returned.
      * @param type - instance of the INNER_RET_T.
      * @return a List of all the individual return values.
      */
     public List<INNER_RET_T> forEachHyperslice(
 	    RandomAccessibleInterval<IMG_T> rai, int d, 
-	    String op) {
+	    Class<? extends Op> opClass) {
     	
 	final ImageJ ij = new ImageJ();
 	
 	ArrayList<INNER_RET_T> ret = new ArrayList<INNER_RET_T>((int)rai.dimension(d));
 	
 	for (long i=0; i<rai.dimension(d); i++) {
-		INNER_RET_T r = (INNER_RET_T) ij.op().run(op, Views.hyperSlice(rai, d, i));
+		INNER_RET_T r = (INNER_RET_T) ij.op().run(opClass, Views.hyperSlice(rai, d, i));
 	    ret.add(r);
 	}
 	
@@ -54,7 +55,7 @@ public class Loops<IMG_T extends Type< IMG_T >, INNER_RET_T> {
      */
     public List<INNER_RET_T> forEachIntervalSlice(
 	    RandomAccessibleInterval<IMG_T> rai, int d, 
-	    Op op) {
+	    Class<? extends Op> opClass) {
 	
 	ArrayList<INNER_RET_T> ret = new ArrayList<INNER_RET_T>((int)rai.dimension(d));
 	
@@ -68,7 +69,7 @@ public class Loops<IMG_T extends Type< IMG_T >, INNER_RET_T> {
 	for (long i=0; i<rai.dimension(d); i++) {
 	    min[ d ] = i;
 	    max[ d ] = i;
-	    INNER_RET_T r = (INNER_RET_T) ij.op().run(op, Views.interval(rai, min, max));
+	    INNER_RET_T r = (INNER_RET_T) ij.op().run(opClass, Views.interval(rai, min, max));
 	    ret.add(r);
 	}
 	

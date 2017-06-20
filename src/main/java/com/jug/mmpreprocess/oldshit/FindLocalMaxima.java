@@ -6,12 +6,8 @@ package com.jug.mmpreprocess.oldshit;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.scijava.ItemIO;
-import org.scijava.plugin.Parameter;
-import org.scijava.plugin.Plugin;
-
-import net.imagej.ops.AbstractOp;
 import net.imagej.ops.Op;
+import net.imagej.ops.special.hybrid.AbstractUnaryHybridCF;
 import net.imglib2.Cursor;
 import net.imglib2.Interval;
 import net.imglib2.Point;
@@ -23,37 +19,20 @@ import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
+import org.scijava.plugin.Plugin;
+
 /**
  * @author jug
  * 
  */
 
-@Plugin(type = Op.class, name = "find local maxima")
-public class FindLocalMaxima<IMG_T extends Type< IMG_T > & Comparable< IMG_T >> extends AbstractOp {
+@Plugin(type = Op.class)
+public class FindLocalMaxima<IMG_T extends Type< IMG_T > & Comparable< IMG_T >> 
+extends AbstractUnaryHybridCF<RandomAccessibleInterval<IMG_T>, List<Point>> {
 
-	@Parameter
-	private RandomAccessibleInterval<IMG_T> input;
 
-	@Parameter(type = ItemIO.OUTPUT)
-	private List< Point > output;
-	
-//	/**
-//	 * Returns an instance of the return type of function 'compute'.
-//	 */
-	public List< Point > createEmptyOutput( final RandomAccessibleInterval< IMG_T > in ) {
-		return new ArrayList< Point >();
-	}
-	
-	
-	/**
-	 * Iterates input and returns the position of the first occurrence of a
-	 * local maximum.
-	 * 
-	 */
 	@Override
-	public void run() {
-		
-		output = createEmptyOutput( input );
+	public void compute(RandomAccessibleInterval<IMG_T> input, List<Point> output) {
 
 		// Credits to Example 4b @ http://imglib2.net/ (Mr. Preibisch and Mr. Pietzsch)
 		// ----------------------------------------------------------------------------
@@ -97,7 +76,13 @@ public class FindLocalMaxima<IMG_T extends Type< IMG_T > & Comparable< IMG_T >> 
 				output.add( new Point( center ) );
 			}
 		}
+		
+	}
 
+
+	@Override
+	public List<Point> createOutput(RandomAccessibleInterval<IMG_T> input) {
+		return new ArrayList<>();
 	}
 
 }

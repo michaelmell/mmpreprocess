@@ -139,7 +139,7 @@ public class MMUtils {
 				new Loops< FloatType, List< Point >>().forEachHyperslice(
 						smooth,
 						1,
-						"find local maxima" );
+						FindLocalMaxima.class);
 
 		// Delete detected points that are too lateral
 		for ( int y = 0; y < frameWellCenters.size(); y++ ) {
