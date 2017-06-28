@@ -44,7 +44,7 @@ public class GrowthLineFrame {
 	}
 
 	/**
-	 * @param location
+	 * @param locations
 	 *            the location to set
 	 */
 	public void setImgLocations( final List< Point > locations ) {
@@ -70,7 +70,7 @@ public class GrowthLineFrame {
 	// constructors
 	// -------------------------------------------------------------------------------------
 	public GrowthLineFrame() {
-		imgLocations = new ArrayList< Point >();
+		imgLocations = new ArrayList<>();
 	}
 
 	// -------------------------------------------------------------------------------------
@@ -131,7 +131,6 @@ public class GrowthLineFrame {
 
 	/**
 	 * @param img
-	 * @param wellPoints
 	 * @return
 	 */
 	public double[] getCenterLineValues( final Img< DoubleType > img ) {
@@ -163,7 +162,7 @@ public class GrowthLineFrame {
 	 *         <code>GrowthLine</code>
 	 */
 	public int getMedianXpos() {
-		final Comparator comp = new Comparator< Point >(){
+		final Comparator<Point> comp = new Comparator< Point >(){
 
 			@Override
 			public int compare( final Point o1, final Point o2 ) {

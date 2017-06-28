@@ -31,7 +31,7 @@ public class Loops<IMG_T extends Type< IMG_T >, INNER_RET_T> {
     	
 	final ImageJ ij = new ImageJ();
 	
-	ArrayList<INNER_RET_T> ret = new ArrayList<INNER_RET_T>((int)rai.dimension(d));
+	ArrayList<INNER_RET_T> ret = new ArrayList<>((int)rai.dimension(d));
 	
 	for (long i=0; i<rai.dimension(d); i++) {
 		INNER_RET_T r = (INNER_RET_T) ij.op().run(opClass, Views.hyperSlice(rai, d, i));
