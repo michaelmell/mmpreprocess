@@ -123,7 +123,7 @@ public class FloatTypeImgLoader {
 	 * @throws ImgIOException
 	 */
 	public static List< Img< FloatType >> loadTiffs( final File[] listOfFiles ) throws ImgIOException {
-		final List< Img< FloatType > > images = new ArrayList< Img< FloatType > >( listOfFiles.length );
+		final List< Img< FloatType > > images = new ArrayList<>( listOfFiles.length );
 		for ( int i = 0; i < listOfFiles.length; i++ ) {
 			images.add( null );
 		}
@@ -198,7 +198,7 @@ public class FloatTypeImgLoader {
 	 * @throws ImgIOException
 	 */
 	public static List< Img< FloatType >> loadMMTiffSequence( final File[] listOfFiles, final boolean normalize ) throws ImgIOException {
-		final List< Img< FloatType > > images = new ArrayList< Img< FloatType > >( listOfFiles.length );
+		final List< Img< FloatType > > images = new ArrayList<>( listOfFiles.length );
 
 		for ( int i = 0; i < listOfFiles.length; i++ ) {
 			images.add( null );
@@ -534,14 +534,14 @@ public class FloatTypeImgLoader {
 	 * @throws Exception
 	 */
 	public static < T extends RealType< T > & NativeType< T > > List< Img< FloatType >> load2DTiffSequenceAsListOfMultiChannelImgs( final String strFolder, final String filterString, final int tmin, final int tmax, final int cmin, final int cmax, final int numDigits ) throws ImgIOException, IncompatibleTypeException, Exception {
-		final List< Img< FloatType >> ret = new ArrayList< Img< FloatType >>();
+		final List< Img< FloatType >> ret = new ArrayList<>();
 
 		final File folder = new File( strFolder );
 
 		for ( int t = tmin; t <= tmax; t++ ) {
 			final String tString = String.format( "_t%0" + numDigits + "d", t );
 
-			final List< Img< FloatType > > channelImgs = new ArrayList< Img< FloatType > >();
+			final List< Img< FloatType > > channelImgs = new ArrayList<>();
 			for ( int c = cmin; c <= cmax; c++ ) {
 				final String cString = String.format( "_c%0" + numDigits + "d", c );
 
@@ -553,7 +553,7 @@ public class FloatTypeImgLoader {
 					}
 				};
 				final File[] listOfFiles = folder.listFiles( filter );
-				if ( listOfFiles.length == 0 || listOfFiles == null ) { throw new Exception( String.format( "Missing file for t=%d and c=%d", t, c ) ); }
+				if ( listOfFiles.length == 0 ) { throw new Exception( String.format( "Missing file for t=%d and c=%d", t, c ) ); }
 				if ( listOfFiles.length > 1 ) { throw new Exception( String.format( "Multiple matching files for t=%d and c=%d", t, c ) ); }
 
 				channelImgs.add( loadTiff( listOfFiles[ 0 ] ) );

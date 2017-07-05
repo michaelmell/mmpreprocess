@@ -3,27 +3,29 @@
  */
 package com.jug.mmpreprocess;
 
+import com.jug.mmpreprocess.util.FloatTypeImgLoader;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.cli.BasicParser;
+import net.imagej.patcher.LegacyInjector;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import com.jug.mmpreprocess.util.FloatTypeImgLoader;
-
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.measure.Measurements;
 import ij.plugin.Duplicator;
 import ij.plugin.HyperStackConverter;
 import ij.process.ImageStatistics;
-import net.imagej.patcher.LegacyInjector;
 
 /**
  * @author jug
@@ -155,7 +157,7 @@ public class MMPreprocess {
 
 		// create Options object & the parser
 		final Options options = new Options();
-		final CommandLineParser parser = new BasicParser();
+		final CommandLineParser parser = new DefaultParser();
 		// defining command line options
 		final Option help = new Option( "help", "print this message" );
 
@@ -261,9 +263,8 @@ public class MMPreprocess {
 					"Error: " + e1.getMessage() );
 			if (!running_as_Fiji_plugin) {
 				System.exit(0);
-			} else {
-				return;
 			}
+			return;
 		}
 
 		if ( cmd.hasOption( "help" ) ) {
@@ -467,7 +468,7 @@ public class MMPreprocess {
 					stack.addSlice(imp.getProcessor());
 				}
 			}
-			if ( stack == null ) {
+			if ( firstFile == null || stack == null ) {
 				System.err.println( "Warning: stack '" + file.getName() + "' could not be saved (was null)." );
 				continue;
 			}
@@ -496,7 +497,7 @@ public class MMPreprocess {
 
 			for ( int c = 1; c <= hyperStack.getNChannels(); c++ ) {
 				hyperStack.setC( c );
-				final ImageStatistics stats = hyperStack.getStatistics( ImageStatistics.MIN_MAX );
+				final ImageStatistics stats = hyperStack.getStatistics( Measurements.MIN_MAX );
 				hyperStack.setDisplayRange( stats.min, stats.max );
 			}
 			IJ.saveAsTiff( hyperStack, newFilename );

@@ -45,8 +45,8 @@ public class MMDataFrame {
 	private int t;
 	private final String basisName;
 
-	private List< String > channelSourceFilenames = new ArrayList< String >();
-	private List< RandomAccessibleInterval< FloatType > > channelImages = new ArrayList<RandomAccessibleInterval< FloatType > >();
+	private List< String > channelSourceFilenames = new ArrayList<>();
+	private List< RandomAccessibleInterval< FloatType > > channelImages = new ArrayList<>();
 	private List< CropArea > glCropAreas = null;
 
 	public MMDataFrame(
@@ -111,14 +111,14 @@ public class MMDataFrame {
 	}
 
 	public void dropImageData() {
-		channelImages = new ArrayList<RandomAccessibleInterval< FloatType > >();
+		channelImages = new ArrayList<>();
 	}
 
 	/**
 	 *
 	 */
 	public void loadChannelImages() {
-		channelImages = new ArrayList<RandomAccessibleInterval< FloatType > >();
+		channelImages = new ArrayList<>();
 
 		// normalize first channel
 		boolean normalize = true;
@@ -246,7 +246,7 @@ public class MMDataFrame {
 
 		// looking for first interval above threshold longer then given value
 		final List< Pair< Integer, Integer >> intervals =
-				new ArrayList< Pair< Integer, Integer >>();
+				new ArrayList<>();
 		int curLen = 0;
 		int candidateStartIndex = 0;
 		boolean wasBelow = true;
@@ -264,7 +264,7 @@ public class MMDataFrame {
 			// case: switch to below threshold
 			if ( !wasBelow && ( y[ j ] <= varianceThreshold || j == y.length - 1 ) ) {
 				wasBelow = true;
-				intervals.add( new ValuePair< Integer, Integer >( candidateStartIndex, j ) );
+				intervals.add( new ValuePair<>( candidateStartIndex, j ) );
 				if ( curLen > minLength ) { return new CropArea( Math.max(
 						0,
 						candidateStartIndex - topPadding ), left, Math.min( j + bottomPadding,
@@ -299,7 +299,7 @@ public class MMDataFrame {
 	 */
 	public List< CropArea > computeGrowthLaneCropAreas( final int lateralOffset, final int cropWidth, final double sigmaX, final double sigmaY ) {
 
-		final List< CropArea > ret = new ArrayList< CropArea >();
+		final List< CropArea > ret = new ArrayList<>();
 
 		final List< GrowthLineFrame > growthLines =
 				MMUtils.getGrowthLineFrames( channelImages.get( 0 ), lateralOffset, 30, 30, sigmaX, sigmaY );

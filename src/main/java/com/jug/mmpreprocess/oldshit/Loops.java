@@ -7,7 +7,6 @@ import net.imagej.ImageJ;
 import net.imagej.ops.Op;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.Type;
-import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
 /**
@@ -57,7 +56,7 @@ public class Loops<IMG_T extends Type< IMG_T >, INNER_RET_T> {
 	    RandomAccessibleInterval<IMG_T> rai, int d, 
 	    Class<? extends Op> opClass) {
 	
-	ArrayList<INNER_RET_T> ret = new ArrayList<INNER_RET_T>((int)rai.dimension(d));
+	ArrayList<INNER_RET_T> ret = new ArrayList<>((int)rai.dimension(d));
 	
 	final ImageJ ij = new ImageJ();
 	

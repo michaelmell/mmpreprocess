@@ -3,17 +3,15 @@
  */
 package com.jug.mmpreprocess;
 
+import com.jug.mmpreprocess.oldshit.FindLocalMaxima;
+import com.jug.mmpreprocess.oldshit.GrowthLineFrame;
+import com.jug.mmpreprocess.oldshit.Loops;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import org.apache.commons.math3.stat.regression.SimpleRegression;
-
-import com.jug.mmpreprocess.oldshit.FindLocalMaxima;
-import com.jug.mmpreprocess.oldshit.GrowthLineFrame;
-import com.jug.mmpreprocess.oldshit.Loops;
 
 import net.imglib2.Cursor;
 import net.imglib2.Point;
@@ -21,9 +19,12 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.gauss3.Gauss3;
 import net.imglib2.exception.IncompatibleTypeException;
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
+
+import org.apache.commons.math3.stat.regression.SimpleRegression;
 
 
 /**
@@ -212,7 +213,7 @@ public class MMUtils {
 
 		// ------ DISTRIBUTE POINTS TO CORRESPONDING GROWTH LINES -------
 
-		final List< GrowthLineFrame > growthLines = new ArrayList< GrowthLineFrame >();
+		final List< GrowthLineFrame > growthLines = new ArrayList<>();
 
 		final Point pOrig = new Point( 3 );
 		pOrig.setPosition( 0, 2 ); // 1st channel
