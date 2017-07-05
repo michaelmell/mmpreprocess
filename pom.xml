@@ -95,11 +95,6 @@
 			<groupId>net.imagej</groupId>
 			<artifactId>imagej</artifactId>
 		</dependency>
-
-		<dependency>
-			<groupId>net.imagej</groupId>
-			<artifactId>imagej</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>Trainable_Segmentation</artifactId>
