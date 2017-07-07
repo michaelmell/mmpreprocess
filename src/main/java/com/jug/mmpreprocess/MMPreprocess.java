@@ -10,6 +10,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import net.imagej.patcher.LegacyInjector;
+import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
+import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.view.IterableRandomAccessibleInterval;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -49,7 +53,7 @@ public class MMPreprocess {
 	private static int MIN_TIME = -1;
 	private static int MAX_TIME = -1;
 	private static double SIGMA_X = 20.0;
-	private static double SIGMA_Y = 0.0;
+	private static double SIGMA_Y = 40.0;
 
 	private static File inputFolder;
 	private static File outputFolder;
@@ -79,45 +83,77 @@ public class MMPreprocess {
 		// assemble file-list to process
 		final MMDataSource dataSource =
 				new MMDataSource( inputFolder, NUM_CHANNELS, MIN_CHANNEL_IDX, MIN_TIME, MAX_TIME );
+		
+		// assemble file-list to process
+		final MMDataSource dataSourceCopy =
+				new MMDataSource( inputFolder, NUM_CHANNELS, MIN_CHANNEL_IDX, MIN_TIME, MAX_TIME );
 
 		double angle = 0;
-		final MMDataFrame firstFrame = dataSource.getFrame( 0 );
-		final MMDataFrame lastFrame = dataSource.getFrame( dataSource.size() - 1 );
-		firstFrame.getChannel( 0 );
-		lastFrame.getChannel( 0 );
-		if ( AUTO_ROTATE ) {
-			// compute tilt angles
-			final double angle1 = MMUtils.computeTiltAngle( firstFrame, INTENSITY_THRESHOLD );
-			final double angle2 = MMUtils.computeTiltAngle( lastFrame, INTENSITY_THRESHOLD );
-			System.out.println( "\n" );
-			System.out.println( "Angle for  1st frame: " + angle1 );
-			System.out.println( "Angle for last frame: " + angle2 );
-			System.out.println( "" );
-
-			// safety net
-			angle = ( angle1 + angle2 ) / 2;
-			if ( Math.abs( angle1 - angle2 ) > 0.5 ) {
-				System.out.println( "Angles are very different -- use only angle of 1st frame!" );
-				angle = angle1;
+		
+		float minThreshold = 0.2f;
+		
+		/* compute average frame:
+		   - toss all values smaller than minThreshold
+		   - add all values to a maximum of 1.0
+		*/
+		
+		MMDataFrame avgFrame = dataSourceCopy.getFrame( 0 );
+		final RandomAccess< FloatType > avgFrameAccess = avgFrame.getChannel(0).randomAccess();
+		for ( int f = 0; f < dataSourceCopy.size(); f++ ) {
+			
+			final MMDataFrame frame = dataSourceCopy.getFrame( f );
+			final IterableRandomAccessibleInterval<FloatType> frameIterable = 
+					new IterableRandomAccessibleInterval<>(frame.getChannel(0));
+			
+			final Cursor< FloatType > frameCursor = frameIterable.localizingCursor();
+			if(f == 0){
+				while ( frameCursor.hasNext() ){
+					frameCursor.fwd();
+					avgFrameAccess.setPosition( frameCursor );
+					if(frameCursor.get().getRealFloat()<minThreshold){
+						avgFrameAccess.get().set(0.0f);
+					}
+					if(frameCursor.get().getRealFloat()>1.0){
+						avgFrameAccess.get().set(1.0f);
+					}
+				}
+			}else{
+				while ( frameCursor.hasNext() ){
+					frameCursor.fwd();
+					if(frameCursor.get().getRealFloat()>minThreshold){
+						avgFrameAccess.setPosition( frameCursor );
+						float innew = avgFrameAccess.get().getRealFloat()+frameCursor.get().getRealFloat();
+						avgFrameAccess.get().set(Math.min(innew, 1.0f));
+					}
+				}
+				frame.dropImageData();
 			}
+		}
+		
+		if ( AUTO_ROTATE && !IS_FLUO_PREPROCESSING ) {
+			// compute tilt angle
+			angle = MMUtils.computeTiltAngle( avgFrame, INTENSITY_THRESHOLD );
+			System.out.println( "\n" );
+			System.out.println( "Angle for  avg. frame: " + angle );
+			System.out.println( "" );
+			
 		}
 
 		// rotate and compute crop ROI
-		firstFrame.rotate( angle, BOTTOM_PADDING );
+		avgFrame.rotate( angle, BOTTOM_PADDING );
 		final CropArea tightCropArea =
-				firstFrame.computeTightCropArea(
+				avgFrame.computeTightCropArea(
 						VARIANCE_THRESHOLD,
 						GL_MIN_LENGTH,
 						TOP_PADDING,
 						BOTTOM_PADDING,
 						DEBUG );
 
-		//TODO average some to do stuff below, here I only take 1st frame
-		firstFrame.crop( tightCropArea );
+		avgFrame.crop( tightCropArea );
 
 		// compute GL crop areas
 		final List< CropArea > glCropAreas =
-				firstFrame.computeGrowthLaneCropAreas( LATERAL_OFFSET, GL_CROP_WIDTH, SIGMA_X, SIGMA_Y );
+				avgFrame.computeGrowthLaneCropAreas( LATERAL_OFFSET, GL_CROP_WIDTH, SIGMA_X, SIGMA_Y );
 //		firstFrame.setGLCropAreas( glCropAreas );
 //		if ( FAKE_GL_WIDTH > 0 ) firstFrame.createFakeGLChannel( IS_FLUO_PREPROCESSING, FAKE_GL_WIDTH );
 //		firstFrame.saveGLCropsTo( outputFolder );
@@ -125,11 +161,9 @@ public class MMPreprocess {
 		// crop GLs out of frames
 		for ( int f = 0; f < dataSource.size(); f++ ) {
 			final MMDataFrame frame = dataSource.getFrame( f );
-			if ( f > 0 ) { // first one is already modified at this point (see above)
-				frame.readImageDataIfNeeded();
-				frame.rotate( angle, BOTTOM_PADDING );
-				frame.crop( tightCropArea );
-			}
+			frame.readImageDataIfNeeded();
+			frame.rotate( angle, BOTTOM_PADDING );
+			frame.crop( tightCropArea );
 			frame.setGLCropAreas( glCropAreas );
 			if ( FAKE_GL_WIDTH > 0 ) frame.createFakeGLChannel( IS_FLUO_PREPROCESSING, FAKE_GL_WIDTH );
 			frame.saveGLCropsTo( outputFolder );
@@ -395,7 +429,7 @@ public class MMPreprocess {
 
 		if ( cmd.hasOption( "s" ) ) {
 			SIGMA_X = Double.parseDouble( cmd.getOptionValue( "s" ) );
-			SIGMA_Y = 0.0;
+//			SIGMA_Y = 0.0;
 		}
 
 		if ( cmd.hasOption( "bn" ) ) {
