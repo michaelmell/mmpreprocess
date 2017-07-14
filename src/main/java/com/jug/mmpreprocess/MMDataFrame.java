@@ -39,7 +39,6 @@ import net.imglib2.view.Views;
  */
 public class MMDataFrame {
 
-	private final int numChannels;
 	private final int minChannelIdx;
 
 	private int t;
@@ -51,11 +50,9 @@ public class MMDataFrame {
 
 	public MMDataFrame(
 			final List< String > srcFilenames,
-			final int numChannels,
 			final int minChannelIdx,
 			final String prefix ) {
 		channelSourceFilenames = srcFilenames;
-		this.numChannels = numChannels;
 		this.minChannelIdx = minChannelIdx;
 
 		sanityChecks();
@@ -103,7 +100,7 @@ public class MMDataFrame {
 	 *
 	 */
 	public boolean readImageDataIfNeeded() {
-		if ( channelImages.size() < numChannels ) {
+		if ( channelImages.size() < MMPreprocess.NUM_CHANNELS ) {
 			loadChannelImages();
 			return true;
 		}
@@ -363,7 +360,7 @@ public class MMDataFrame {
 			dims[ 0 ] = ca.right - ca.left;
 			dims[ 1 ] = ca.bottom - ca.top;
 
-			for ( int c = 0; c < numChannels; c++ ) {
+			for ( int c = 0; c < MMPreprocess.NUM_CHANNELS; c++ ) {
 				final IntervalView< FloatType > toSave = Views.interval(
 						channelImages.get( c ),
 						new long[] { ca.left, ca.top },
