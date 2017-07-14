@@ -38,7 +38,7 @@ public class MMPreprocessingPlugin implements PlugIn {
 
 		gd.addMessage( "Fluorescence preproc? (Auto-rot off?)" );
 		gd.addCheckbox( "No_phase_contrast", false );
-		gd.addNumericField( "Fake_GL_width (in pixel)", -1, 0 );
+		gd.addNumericField( "Fake_GL_width (in pixel)", 20, 0 );
 
 		gd.addMessage( "Single-channel parameters:" );
 		gd.addNumericField( "Crop_width (in pixel)", 100, 0 );

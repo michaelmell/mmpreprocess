@@ -45,7 +45,7 @@ public class MMPreprocess {
 	// things to come via command-line arguments
 	private static String OUTPUT_PATH = "";
 	private static int MIN_CHANNEL_IDX = 1;
-	private static int NUM_CHANNELS = 2;
+	public static int NUM_CHANNELS = 2;
 	private static int MIN_TIME = -1;
 	private static int MAX_TIME = -1;
 	private static double SIGMA_X = 20.0;
@@ -66,7 +66,7 @@ public class MMPreprocess {
 	private static int GL_CROP_WIDTH = 100;           // may be modified in parseCommandLineArgs()
 	private static boolean SEQUENCE_OUTPUT = false;   // may be modified in parseCommandLineArgs()
 	private static boolean IS_FLUO_PREPROCESSING = false; // may be modified in parseCommandLineArgs()
-	private static int FAKE_GL_WIDTH = -1;            // may be modified in parseCommandLineArgs() -- negative values will cause no fake-GL to be created!
+	private static int FAKE_GL_WIDTH = 20;            // may be modified in parseCommandLineArgs() -- negative values will cause no fake-GL to be created!
 
 	/**
 	 * @param args
@@ -78,7 +78,7 @@ public class MMPreprocess {
 
 		// assemble file-list to process
 		final MMDataSource dataSource =
-				new MMDataSource( inputFolder, NUM_CHANNELS, MIN_CHANNEL_IDX, MIN_TIME, MAX_TIME );
+				new MMDataSource( inputFolder, MIN_CHANNEL_IDX, MIN_TIME, MAX_TIME );
 
 		double angle = 0;
 		final MMDataFrame firstFrame = dataSource.getFrame( 0 );
@@ -118,11 +118,9 @@ public class MMPreprocess {
 		// compute GL crop areas
 		final List< CropArea > glCropAreas =
 				firstFrame.computeGrowthLaneCropAreas( LATERAL_OFFSET, GL_CROP_WIDTH, SIGMA_X, SIGMA_Y );
-//		firstFrame.setGLCropAreas( glCropAreas );
-//		if ( FAKE_GL_WIDTH > 0 ) firstFrame.createFakeGLChannel( IS_FLUO_PREPROCESSING, FAKE_GL_WIDTH );
-//		firstFrame.saveGLCropsTo( outputFolder );
 
 		// crop GLs out of frames
+		if ( IS_FLUO_PREPROCESSING ) MMPreprocess.NUM_CHANNELS++;
 		for ( int f = 0; f < dataSource.size(); f++ ) {
 			final MMDataFrame frame = dataSource.getFrame( f );
 			if ( f > 0 ) { // first one is already modified at this point (see above)
@@ -131,7 +129,7 @@ public class MMPreprocess {
 				frame.crop( tightCropArea );
 			}
 			frame.setGLCropAreas( glCropAreas );
-			if ( FAKE_GL_WIDTH > 0 ) frame.createFakeGLChannel( IS_FLUO_PREPROCESSING, FAKE_GL_WIDTH );
+			if ( IS_FLUO_PREPROCESSING ) frame.createFakeGLChannel( IS_FLUO_PREPROCESSING, FAKE_GL_WIDTH );
 			frame.saveGLCropsTo( outputFolder );
 
 			frame.dropImageData();
