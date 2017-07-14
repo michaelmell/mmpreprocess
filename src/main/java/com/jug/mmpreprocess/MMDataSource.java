@@ -20,20 +20,15 @@ public class MMDataSource {
 
 	private final List< MMDataFrame > dataFrames = new ArrayList< MMDataFrame >();
 
-	private final int numChannels;
-
 	/**
 	 * @param inputFolder
 	 */
 	public MMDataSource(
 			final File inputFolder,
-			final int numChannels,
 			final int minChannelIdx,
 			final int minTime,
 			int maxTime ) {
 		sanityChecks( inputFolder );
-
-		this.numChannels = numChannels;
 
 		if ( maxTime < 0 ) {
 			maxTime = Integer.MAX_VALUE;
@@ -63,20 +58,20 @@ public class MMDataSource {
 
 		Collections.sort( listOfImageFilesnames );
 		int i = 0;
-		List< String > srcFilenames = new ArrayList<>( numChannels );
+		List< String > srcFilenames = new ArrayList<>( MMPreprocess.NUM_CHANNELS );
 		for ( final String filename : listOfImageFilesnames ) {
 //			System.out.println( filename );
 
 			// collect
-			if ( i % numChannels == 0 ) {
+			if ( i % MMPreprocess.NUM_CHANNELS == 0 ) {
 				srcFilenames.add( filename );
 			} else {
 				srcFilenames.add( filename );
 			}
 			// add + restart collecting
-			if ( ( i + 1 ) % numChannels == 0 ) {
-				dataFrames.add( new MMDataFrame( srcFilenames, numChannels, minChannelIdx, inputFolder.getName() ) );
-				srcFilenames = new ArrayList<>( numChannels );
+			if ( ( i + 1 ) % MMPreprocess.NUM_CHANNELS == 0 ) {
+				dataFrames.add( new MMDataFrame( srcFilenames, minChannelIdx, inputFolder.getName() ) );
+				srcFilenames = new ArrayList<>( MMPreprocess.NUM_CHANNELS );
 			}
 
 			i++;
