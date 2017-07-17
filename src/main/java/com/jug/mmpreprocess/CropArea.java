@@ -13,6 +13,13 @@ public class CropArea {
 		this.bottom = bottom;
 		this.right = right;
 	}
+	
+	public CropArea( final CropArea copy ) {
+		this.top = copy.top;
+		this.left = copy.left;
+		this.bottom = copy.bottom;
+		this.right = copy.right;
+	}
 
 	public long getCenterCoordinate() {
 		return ( right + left ) / 2;
