@@ -3,17 +3,9 @@
  */
 package com.jug.mmpreprocess;
 
-import com.jug.mmpreprocess.util.FloatTypeImgLoader;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-
-import net.imagej.patcher.LegacyInjector;
-import net.imglib2.Cursor;
-import net.imglib2.RandomAccess;
-import net.imglib2.type.numeric.real.FloatType;
-import net.imglib2.view.IterableRandomAccessibleInterval;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -23,6 +15,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import com.jug.mmpreprocess.util.FloatTypeImgLoader;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -30,12 +24,17 @@ import ij.measure.Measurements;
 import ij.plugin.Duplicator;
 import ij.plugin.HyperStackConverter;
 import ij.process.ImageStatistics;
+import net.imagej.patcher.LegacyInjector;
+import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
+import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.view.IterableRandomAccessibleInterval;
 
 /**
  * @author jug
  */
 public class MMPreprocess {
-	
+
 	static {
 		LegacyInjector.preinit();
 	}
@@ -88,21 +87,21 @@ public class MMPreprocess {
 		final MMDataFrame lastFrame = dataSource.getFrame( dataSource.size() - 1 );
 		firstFrame.getChannel( 0 );
 		lastFrame.getChannel( 0 );
-		
+
 		final MMDataFrame exampleFrame;
-		
+
 		double angle = 0;
-		
+
 		if(IS_FLUO_PREPROCESSING){
-			MMDataFrame avgFrame = new MMDataFrame(firstFrame);
-			
-			RandomAccess<FloatType> avgFrameCursor = avgFrame.getChannel(0).randomAccess();
+			final MMDataFrame avgFrame = new MMDataFrame(firstFrame);
+
+			final RandomAccess<FloatType> avgFrameCursor = avgFrame.getChannel(0).randomAccess();
 			for ( int f = 1; f < dataSource.size(); f++ ) {
-				
+
 				final MMDataFrame frame = dataSource.getFrame( f );
-				final IterableRandomAccessibleInterval<FloatType> frameIterable = 
-						new IterableRandomAccessibleInterval<>(frame.getChannel(0));
-				
+				final IterableRandomAccessibleInterval<FloatType> frameIterable =
+						new IterableRandomAccessibleInterval< FloatType >( frame.getChannel( 0 ) );
+
 				final Cursor< FloatType > frameCursor = frameIterable.localizingCursor();
 				while ( frameCursor.hasNext() ){
 					frameCursor.fwd();
@@ -116,7 +115,7 @@ public class MMPreprocess {
 			exampleFrame = avgFrame;
 		}else{
 			exampleFrame = firstFrame;
-			
+
 			if ( AUTO_ROTATE) {
 				// compute tilt angles
 				final double angle1 = MMUtils.computeTiltAngle( firstFrame, INTENSITY_THRESHOLD );
@@ -132,7 +131,7 @@ public class MMPreprocess {
 					System.out.println( "Angles are very different -- use only angle of 1st frame!" );
 					angle = angle1;
 				}
-				
+
 			}
 		}
 
@@ -453,7 +452,7 @@ public class MMPreprocess {
 		// Parameters for fake phase contrast channel generation
 		IS_FLUO_PREPROCESSING = cmd.hasOption( "fluo" );
 		if(IS_FLUO_PREPROCESSING){
-			SIGMA_Y = 40.0;			
+			SIGMA_Y = 40.0;
 		}
 
 		if ( cmd.hasOption( "fake_gl_width" ) ) {

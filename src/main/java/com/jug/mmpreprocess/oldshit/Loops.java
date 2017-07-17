@@ -15,7 +15,7 @@ import net.imglib2.view.Views;
  */
 public class Loops<IMG_T extends Type< IMG_T >, INNER_RET_T> {
 
-    /** Hyperslices given <code>RandomAccessibleInterval</code> and hands individual slices to a 
+    /** Hyperslices given <code>RandomAccessibleInterval</code> and hands individual slices to a
      *  given UnaryOperation.
      * @param rai - <code>RandomAccessibleInterval</code> to be hypersliced.
      * @param d - dimension along which the hyperslices will be created.
@@ -25,25 +25,25 @@ public class Loops<IMG_T extends Type< IMG_T >, INNER_RET_T> {
      * @return a List of all the individual return values.
      */
     public List<INNER_RET_T> forEachHyperslice(
-	    RandomAccessibleInterval<IMG_T> rai, int d, 
-	    Class<? extends Op> opClass) {
-    	
+	    final RandomAccessibleInterval<IMG_T> rai, final int d,
+	    final Class<? extends Op> opClass) {
+
 	final ImageJ ij = new ImageJ();
-	
-	ArrayList<INNER_RET_T> ret = new ArrayList<>((int)rai.dimension(d));
-	
+
+		final ArrayList< INNER_RET_T > ret = new ArrayList< INNER_RET_T >( ( int ) rai.dimension( d ) );
+
 	for (long i=0; i<rai.dimension(d); i++) {
-		INNER_RET_T r = (INNER_RET_T) ij.op().run(opClass, Views.hyperSlice(rai, d, i));
+		final INNER_RET_T r = (INNER_RET_T) ij.op().run(opClass, Views.hyperSlice(rai, d, i));
 	    ret.add(r);
 	}
-	
+
 	return ret;
     }
-    
-    /** Slices given <code>RandomAccessibleInterval</code> along given dimension and hands those to a 
-     *  given UnaryOperation. The difference to <code>forEachHyperslice</code> is, 
-     *  that the image dimensions of the given <code>RandomAccessibleInterval</code> 
-     *  are preserved and pointers (like e.g. Cursors) created on the slices can be 
+
+    /** Slices given <code>RandomAccessibleInterval</code> along given dimension and hands those to a
+     *  given UnaryOperation. The difference to <code>forEachHyperslice</code> is,
+     *  that the image dimensions of the given <code>RandomAccessibleInterval</code>
+     *  are preserved and pointers (like e.g. Cursors) created on the slices can be
      *  used to locate the same places in the original <code>RandomAccessibleInterval</code>.
      * @param rai - <code>RandomAccessibleInterval</code> to be hypersliced.
      * @param d - dimension along which the hyperslices will be created.
@@ -53,25 +53,25 @@ public class Loops<IMG_T extends Type< IMG_T >, INNER_RET_T> {
      * @return a List of all the individual return values.
      */
     public List<INNER_RET_T> forEachIntervalSlice(
-	    RandomAccessibleInterval<IMG_T> rai, int d, 
-	    Class<? extends Op> opClass) {
-	
-	ArrayList<INNER_RET_T> ret = new ArrayList<>((int)rai.dimension(d));
-	
+	    final RandomAccessibleInterval<IMG_T> rai, final int d,
+	    final Class<? extends Op> opClass) {
+
+		final ArrayList< INNER_RET_T > ret = new ArrayList< INNER_RET_T >( ( int ) rai.dimension( d ) );
+
 	final ImageJ ij = new ImageJ();
-	
+
 	final int n = rai.numDimensions();
-	long[] min = new long[n];
+	final long[] min = new long[n];
 	rai.min( min );
-	long[] max = new long[n];
+	final long[] max = new long[n];
 	rai.max( max );
 	for (long i=0; i<rai.dimension(d); i++) {
 	    min[ d ] = i;
 	    max[ d ] = i;
-	    INNER_RET_T r = (INNER_RET_T) ij.op().run(opClass, Views.interval(rai, min, max));
+	    final INNER_RET_T r = (INNER_RET_T) ij.op().run(opClass, Views.interval(rai, min, max));
 	    ret.add(r);
 	}
-	
+
 	return ret;
     }
 }

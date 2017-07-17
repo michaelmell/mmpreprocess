@@ -213,7 +213,7 @@ public class MMUtils {
 
 		// ------ DISTRIBUTE POINTS TO CORRESPONDING GROWTH LINES -------
 
-		final List< GrowthLineFrame > growthLines = new ArrayList<>();
+		final List< GrowthLineFrame > growthLines = new ArrayList<GrowthLineFrame>();
 
 		final Point pOrig = new Point( 3 );
 		pOrig.setPosition( 0, 2 ); // 1st channel

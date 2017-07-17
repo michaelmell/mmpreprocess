@@ -3,16 +3,17 @@
  */
 package com.jug.mmpreprocess.util;
 
-import ij.IJ;
-import ij.Prefs;
-import io.scif.img.ImgIOException;
-
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
+import ij.IJ;
+import ij.Prefs;
+import io.scif.img.ImgIOException;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
@@ -25,7 +26,6 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author jug
@@ -123,7 +123,7 @@ public class FloatTypeImgLoader {
 	 * @throws ImgIOException
 	 */
 	public static List< Img< FloatType >> loadTiffs( final File[] listOfFiles ) throws ImgIOException {
-		final List< Img< FloatType > > images = new ArrayList<>( listOfFiles.length );
+		final List< Img< FloatType > > images = new ArrayList< Img< FloatType > >( listOfFiles.length );
 		for ( int i = 0; i < listOfFiles.length; i++ ) {
 			images.add( null );
 		}
@@ -198,7 +198,7 @@ public class FloatTypeImgLoader {
 	 * @throws ImgIOException
 	 */
 	public static List< Img< FloatType >> loadMMTiffSequence( final File[] listOfFiles, final boolean normalize ) throws ImgIOException {
-		final List< Img< FloatType > > images = new ArrayList<>( listOfFiles.length );
+		final List< Img< FloatType > > images = new ArrayList< Img< FloatType > >( listOfFiles.length );
 
 		for ( int i = 0; i < listOfFiles.length; i++ ) {
 			images.add( null );
@@ -534,14 +534,14 @@ public class FloatTypeImgLoader {
 	 * @throws Exception
 	 */
 	public static < T extends RealType< T > & NativeType< T > > List< Img< FloatType >> load2DTiffSequenceAsListOfMultiChannelImgs( final String strFolder, final String filterString, final int tmin, final int tmax, final int cmin, final int cmax, final int numDigits ) throws ImgIOException, IncompatibleTypeException, Exception {
-		final List< Img< FloatType >> ret = new ArrayList<>();
+		final List< Img< FloatType > > ret = new ArrayList< Img< FloatType > >();
 
 		final File folder = new File( strFolder );
 
 		for ( int t = tmin; t <= tmax; t++ ) {
 			final String tString = String.format( "_t%0" + numDigits + "d", t );
 
-			final List< Img< FloatType > > channelImgs = new ArrayList<>();
+			final List< Img< FloatType > > channelImgs = new ArrayList< Img< FloatType > >();
 			for ( int c = cmin; c <= cmax; c++ ) {
 				final String cString = String.format( "_c%0" + numDigits + "d", c );
 
@@ -697,11 +697,11 @@ public class FloatTypeImgLoader {
 	}
 
 
-	public static int getTimeFromFilename(String filename) {
+	public static int getTimeFromFilename(final String filename) {
 		return getParameterFromFilename(filename, "t");
 	}
 
-	public static int getChannelFromFilename(String filename) {
+	public static int getChannelFromFilename(final String filename) {
 		return getParameterFromFilename(filename, "c");
 	}
 
@@ -713,16 +713,16 @@ public class FloatTypeImgLoader {
 	 * @param startsWith
 	 * @return
 	 */
-	private static int getParameterFromFilename(String filename, String startsWith) {
-		String[] arr = filename.split("_");
+	private static int getParameterFromFilename(final String filename, final String startsWith) {
+		final String[] arr = filename.split("_");
 
 		boolean resultValid = false;
 		int result = 0;
-		for (String item : arr) {
+		for (final String item : arr) {
 			if (item.startsWith(startsWith)) {
 
 				for (int i = 1; i < item.length(); i++) {
-					String substr = item.substring(1, i+1);
+					final String substr = item.substring(1, i+1);
 					if (isNumeric(substr))
 					{
 						result = Integer.parseInt(substr);
@@ -737,7 +737,7 @@ public class FloatTypeImgLoader {
 		}
 		return 0;
 	}
-	private static boolean isNumeric(String text) {
+	private static boolean isNumeric(final String text) {
 		return StringUtils.isNumeric(text);
 	}
 }

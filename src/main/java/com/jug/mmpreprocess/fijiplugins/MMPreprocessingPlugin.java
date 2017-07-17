@@ -21,8 +21,10 @@ public class MMPreprocessingPlugin implements PlugIn {
         // plugin configuration
         final GenericDialogPlus gd = new GenericDialogPlus("MMPreprocessing Configuration");
         if (s.equals("file")) {
+			System.out.println( "Calling from 'file'... currentDir=" + currentDir );
             gd.addFileField("Input_file", currentDir);
         } else {
+			System.out.println( "Calling from 'folder'... currentDir=" + currentDir );
             gd.addDirectoryField("Input_folder", currentDir);
         }
         gd.addDirectoryField("Output_folder", currentDir);

@@ -70,7 +70,7 @@ public class GrowthLineFrame {
 	// constructors
 	// -------------------------------------------------------------------------------------
 	public GrowthLineFrame() {
-		imgLocations = new ArrayList<>();
+		imgLocations = new ArrayList< Point >();
 	}
 
 	// -------------------------------------------------------------------------------------
