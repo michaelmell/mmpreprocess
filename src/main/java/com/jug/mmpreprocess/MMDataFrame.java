@@ -3,22 +3,19 @@
  */
 package com.jug.mmpreprocess;
 
+import com.jug.mmpreprocess.oldshit.GrowthLineFrame;
+import com.jug.mmpreprocess.oldshit.Loops;
+import com.jug.mmpreprocess.oldshit.VarOfRai;
+import com.jug.mmpreprocess.util.FloatTypeImgLoader;
+
+import io.scif.img.ImgIOException;
+
 import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.jug.mmpreprocess.oldshit.GrowthLineFrame;
-import com.jug.mmpreprocess.oldshit.Loops;
-import com.jug.mmpreprocess.oldshit.VarOfRai;
-import com.jug.mmpreprocess.util.FloatTypeImgLoader;
-
-import ij.IJ;
-import ij.ImagePlus;
-import ij.plugin.Duplicator;
-import ij.process.ImageProcessor;
-import io.scif.img.ImgIOException;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
@@ -34,6 +31,11 @@ import net.imglib2.util.ValuePair;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.plugin.Duplicator;
+import ij.process.ImageProcessor;
+
 /**
  * @author jug
  */
@@ -44,8 +46,8 @@ public class MMDataFrame {
 	private int t;
 	private final String basisName;
 
-	private List< String > channelSourceFilenames = new ArrayList< String >();
-	private List< RandomAccessibleInterval< FloatType > > channelImages = new ArrayList<RandomAccessibleInterval< FloatType > >();
+	private List< String > channelSourceFilenames = new ArrayList<>();
+	private List< RandomAccessibleInterval< FloatType > > channelImages = new ArrayList<>();
 	private List< CropArea > glCropAreas = null;
 
 	public MMDataFrame(
@@ -68,6 +70,23 @@ public class MMDataFrame {
 		}
 
 		basisName = prefix;
+	}
+	
+	public MMDataFrame( final MMDataFrame copy ) {
+		this.minChannelIdx = copy.minChannelIdx;
+		this.channelSourceFilenames = new ArrayList<>(copy.channelSourceFilenames);
+		
+		sanityChecks();
+
+		try {
+			this.t = FloatTypeImgLoader.getTimeFromFilename(channelSourceFilenames.get( 0 )); //Integer.parseInt( strT );
+		} catch ( final NumberFormatException e ) {
+			throw new IllegalArgumentException( String.format(
+					"ERROR\tFile list corrupt. Time could not be extracted for file %s.",
+					channelSourceFilenames.get( 0 ) ) );
+		}
+		
+		this.basisName = copy.basisName;
 	}
 
 	/**
@@ -108,14 +127,14 @@ public class MMDataFrame {
 	}
 
 	public void dropImageData() {
-		channelImages = new ArrayList<RandomAccessibleInterval< FloatType > >();
+		channelImages = new ArrayList<>();
 	}
 
 	/**
 	 *
 	 */
 	public void loadChannelImages() {
-		channelImages = new ArrayList<RandomAccessibleInterval< FloatType > >();
+		channelImages = new ArrayList<>();
 
 		// normalize first channel
 		boolean normalize = true;
@@ -225,7 +244,7 @@ public class MMDataFrame {
 				new Loops< FloatType, FloatType >().forEachHyperslice(
 						channelImages.get( 0 ),
 						1,
-						new VarOfRai< FloatType >() );
+						VarOfRai.class);
 		final double[] y = new double[ points.size() ];
 		int i = 0;
 		for ( final FloatType dtPoint : points ) {
@@ -243,7 +262,7 @@ public class MMDataFrame {
 
 		// looking for first interval above threshold longer then given value
 		final List< Pair< Integer, Integer >> intervals =
-				new ArrayList< Pair< Integer, Integer >>();
+				new ArrayList<>();
 		int curLen = 0;
 		int candidateStartIndex = 0;
 		boolean wasBelow = true;
@@ -261,7 +280,7 @@ public class MMDataFrame {
 			// case: switch to below threshold
 			if ( !wasBelow && ( y[ j ] <= varianceThreshold || j == y.length - 1 ) ) {
 				wasBelow = true;
-				intervals.add( new ValuePair< Integer, Integer >( candidateStartIndex, j ) );
+				intervals.add( new ValuePair<>( candidateStartIndex, j ) );
 				if ( curLen > minLength ) { return new CropArea( Math.max(
 						0,
 						candidateStartIndex - topPadding ), left, Math.min( j + bottomPadding,
@@ -296,7 +315,7 @@ public class MMDataFrame {
 	 */
 	public List< CropArea > computeGrowthLaneCropAreas( final int lateralOffset, final int cropWidth, final double sigmaX, final double sigmaY ) {
 
-		final List< CropArea > ret = new ArrayList< CropArea >();
+		final List< CropArea > ret = new ArrayList<>();
 
 		final List< GrowthLineFrame > growthLines =
 				MMUtils.getGrowthLineFrames( channelImages.get( 0 ), lateralOffset, 30, 30, sigmaX, sigmaY );

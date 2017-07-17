@@ -3,23 +3,30 @@
  */
 package com.jug.mmpreprocess;
 
+import com.jug.mmpreprocess.util.FloatTypeImgLoader;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.cli.BasicParser;
+import net.imagej.patcher.LegacyInjector;
+import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
+import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.view.IterableRandomAccessibleInterval;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import com.jug.mmpreprocess.util.FloatTypeImgLoader;
-
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.measure.Measurements;
 import ij.plugin.Duplicator;
 import ij.plugin.HyperStackConverter;
 import ij.process.ImageStatistics;
@@ -28,6 +35,11 @@ import ij.process.ImageStatistics;
  * @author jug
  */
 public class MMPreprocess {
+	
+	static {
+		LegacyInjector.preinit();
+	}
+
 
 	public static final int EXIT_STATUS_COULDNOTLOAD = 1;
 	public static final int EXIT_STATUS_COULDNOTLOAD_AS_FLOATTYPE = 1;
@@ -72,50 +84,79 @@ public class MMPreprocess {
 		final MMDataSource dataSource =
 				new MMDataSource( inputFolder, MIN_CHANNEL_IDX, MIN_TIME, MAX_TIME );
 
-		double angle = 0;
 		final MMDataFrame firstFrame = dataSource.getFrame( 0 );
 		final MMDataFrame lastFrame = dataSource.getFrame( dataSource.size() - 1 );
 		firstFrame.getChannel( 0 );
 		lastFrame.getChannel( 0 );
-		if ( AUTO_ROTATE ) {
-			// compute tilt angles
-			final double angle1 = MMUtils.computeTiltAngle( firstFrame, INTENSITY_THRESHOLD );
-			final double angle2 = MMUtils.computeTiltAngle( lastFrame, INTENSITY_THRESHOLD );
-			System.out.println( "\n" );
-			System.out.println( "Angle for  1st frame: " + angle1 );
-			System.out.println( "Angle for last frame: " + angle2 );
-			System.out.println( "" );
+		
+		final MMDataFrame exampleFrame;
+		
+		double angle = 0;
+		
+		if(IS_FLUO_PREPROCESSING){
+			MMDataFrame avgFrame = new MMDataFrame(firstFrame);
+			
+			RandomAccess<FloatType> avgFrameCursor = avgFrame.getChannel(0).randomAccess();
+			for ( int f = 1; f < dataSource.size(); f++ ) {
+				
+				final MMDataFrame frame = dataSource.getFrame( f );
+				final IterableRandomAccessibleInterval<FloatType> frameIterable = 
+						new IterableRandomAccessibleInterval<>(frame.getChannel(0));
+				
+				final Cursor< FloatType > frameCursor = frameIterable.localizingCursor();
+				while ( frameCursor.hasNext() ){
+					frameCursor.fwd();
+					avgFrameCursor.setPosition( frameCursor );
+					if(frameCursor.get().getRealFloat()>avgFrameCursor.get().getRealFloat()){
+						avgFrameCursor.get().set(frameCursor.get().getRealFloat());
+					}
+				}
+				frame.dropImageData();
+			}
+			exampleFrame = avgFrame;
+		}else{
+			exampleFrame = firstFrame;
+			
+			if ( AUTO_ROTATE) {
+				// compute tilt angles
+				final double angle1 = MMUtils.computeTiltAngle( firstFrame, INTENSITY_THRESHOLD );
+				final double angle2 = MMUtils.computeTiltAngle( lastFrame, INTENSITY_THRESHOLD );
+				System.out.println( "\n" );
+				System.out.println( "Angle for  1st frame: " + angle1 );
+				System.out.println( "Angle for last frame: " + angle2 );
+				System.out.println( "" );
 
-			// safety net
-			angle = ( angle1 + angle2 ) / 2;
-			if ( Math.abs( angle1 - angle2 ) > 0.5 ) {
-				System.out.println( "Angles are very different -- use only angle of 1st frame!" );
-				angle = angle1;
+				// safety net
+				angle = ( angle1 + angle2 ) / 2;
+				if ( Math.abs( angle1 - angle2 ) > 0.5 ) {
+					System.out.println( "Angles are very different -- use only angle of 1st frame!" );
+					angle = angle1;
+				}
+				
 			}
 		}
 
 		// rotate and compute crop ROI
-		firstFrame.rotate( angle, BOTTOM_PADDING );
+		exampleFrame.rotate( angle, BOTTOM_PADDING );
 		final CropArea tightCropArea =
-				firstFrame.computeTightCropArea(
+				exampleFrame.computeTightCropArea(
 						VARIANCE_THRESHOLD,
 						GL_MIN_LENGTH,
 						TOP_PADDING,
 						BOTTOM_PADDING,
 						DEBUG );
 
-		//TODO average some to do stuff below, here I only take 1st frame
-		firstFrame.crop( tightCropArea );
+		exampleFrame.crop( tightCropArea );
 
 		// compute GL crop areas
 		final List< CropArea > glCropAreas =
-				firstFrame.computeGrowthLaneCropAreas( LATERAL_OFFSET, GL_CROP_WIDTH, SIGMA_X, SIGMA_Y );
+				exampleFrame.computeGrowthLaneCropAreas( LATERAL_OFFSET, GL_CROP_WIDTH, SIGMA_X, SIGMA_Y );
 
 		// crop GLs out of frames
 		if ( IS_FLUO_PREPROCESSING ) MMPreprocess.NUM_CHANNELS++;
 		for ( int f = 0; f < dataSource.size(); f++ ) {
 			final MMDataFrame frame = dataSource.getFrame( f );
-			if ( f > 0 ) { // first one is already modified at this point (see above)
+			if ( f > 0 || IS_FLUO_PREPROCESSING ) { // first one is already modified at this point (see above)
 				frame.readImageDataIfNeeded();
 				frame.rotate( angle, BOTTOM_PADDING );
 				frame.crop( tightCropArea );
@@ -147,7 +188,7 @@ public class MMPreprocess {
 
 		// create Options object & the parser
 		final Options options = new Options();
-		final CommandLineParser parser = new BasicParser();
+		final CommandLineParser parser = new DefaultParser();
 		// defining command line options
 		final Option help = new Option( "help", "print this message" );
 
@@ -253,9 +294,8 @@ public class MMPreprocess {
 					"Error: " + e1.getMessage() );
 			if (!running_as_Fiji_plugin) {
 				System.exit(0);
-			} else {
-				return;
 			}
+			return;
 		}
 
 		if ( cmd.hasOption( "help" ) ) {
@@ -386,7 +426,6 @@ public class MMPreprocess {
 
 		if ( cmd.hasOption( "s" ) ) {
 			SIGMA_X = Double.parseDouble( cmd.getOptionValue( "s" ) );
-			SIGMA_Y = 0.0;
 		}
 
 		if ( cmd.hasOption( "bn" ) ) {
@@ -413,6 +452,9 @@ public class MMPreprocess {
 
 		// Parameters for fake phase contrast channel generation
 		IS_FLUO_PREPROCESSING = cmd.hasOption( "fluo" );
+		if(IS_FLUO_PREPROCESSING){
+			SIGMA_Y = 40.0;			
+		}
 
 		if ( cmd.hasOption( "fake_gl_width" ) ) {
 			FAKE_GL_WIDTH = Integer.parseInt( cmd.getOptionValue( "fglw" ) );
@@ -459,7 +501,7 @@ public class MMPreprocess {
 					stack.addSlice(imp.getProcessor());
 				}
 			}
-			if ( stack == null ) {
+			if ( firstFile == null || stack == null ) {
 				System.err.println( "Warning: stack '" + file.getName() + "' could not be saved (was null)." );
 				continue;
 			}
@@ -488,7 +530,7 @@ public class MMPreprocess {
 
 			for ( int c = 1; c <= hyperStack.getNChannels(); c++ ) {
 				hyperStack.setC( c );
-				final ImageStatistics stats = hyperStack.getStatistics( ImageStatistics.MIN_MAX );
+				final ImageStatistics stats = hyperStack.getStatistics( Measurements.MIN_MAX );
 				hyperStack.setDisplayRange( stats.min, stats.max );
 			}
 			IJ.saveAsTiff( hyperStack, newFilename );

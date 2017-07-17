@@ -36,7 +36,7 @@ public class MMDataSource {
 
 		final File[] fileArray =
 				inputFolder.listFiles( /*new ExtensionFileFilter( extensions, ".tif and .tiff" )*/ MMUtils.tifFilter );
-		final List< String > listOfImageFilesnames = new ArrayList< String >( fileArray.length );
+		final List< String > listOfImageFilesnames = new ArrayList<>( fileArray.length );
 		for ( final File file : fileArray ) {
 			if ( !file.isDirectory() ) {
 				if ( isInDataRange( file.getAbsolutePath(), minTime, maxTime ) ) {
@@ -58,7 +58,7 @@ public class MMDataSource {
 
 		Collections.sort( listOfImageFilesnames );
 		int i = 0;
-		List< String > srcFilenames = new ArrayList< String >( MMPreprocess.NUM_CHANNELS );
+		List< String > srcFilenames = new ArrayList<>( MMPreprocess.NUM_CHANNELS );
 		for ( final String filename : listOfImageFilesnames ) {
 //			System.out.println( filename );
 
@@ -71,7 +71,7 @@ public class MMDataSource {
 			// add + restart collecting
 			if ( ( i + 1 ) % MMPreprocess.NUM_CHANNELS == 0 ) {
 				dataFrames.add( new MMDataFrame( srcFilenames, minChannelIdx, inputFolder.getName() ) );
-				srcFilenames = new ArrayList< String >( MMPreprocess.NUM_CHANNELS );
+				srcFilenames = new ArrayList<>( MMPreprocess.NUM_CHANNELS );
 			}
 
 			i++;
