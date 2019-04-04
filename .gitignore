@@ -3,3 +3,4 @@
 .settings/
 target/
 /.idea/
+src/test/resources/file_test.tif
