@@ -126,7 +126,7 @@
 						<configuration>
 							<transformers>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>com.jug.mmpreprocess</mainClass>
+									<mainClass>com.jug.mmpreprocess.MMPreprocess</mainClass>
 								</transformer>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
 									<resource>META-INF/json/org.scijava.plugin.Plugin</resource>
